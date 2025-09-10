@@ -67,7 +67,7 @@ const LoginPage = () => {
         return;
       } catch (loginError) {
         try {
-          const registerResponse = await authAPI.register(userData);
+          await authAPI.register(userData);
           const loginResponse = await authAPI.login(userData.email, userData.password);
           localStorage.setItem('token', loginResponse.token);
           localStorage.setItem('user', JSON.stringify(loginResponse.user));
@@ -100,8 +100,15 @@ const LoginPage = () => {
 
     try {
       const response = await authAPI.login(formData.email, formData.password);
-      window.location.href = '/';
+      if (response.success) {
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+        window.location.href = '/';
+      } else {
+        setError(response.message || 'Login failed. Please try again.');
+      }
     } catch (err) {
+      console.error('Login error:', err);
       setError(err.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
@@ -192,7 +199,7 @@ const LoginPage = () => {
                   />
                   <span>Remember me</span>
                 </label>
-                <a href="#" className="forgot-link">Forgot Password?</a>
+                <a href="/forgot-password" className="forgot-link">Forgot Password?</a>
               </div>
 
               <button type="submit" className="login-button" disabled={loading}>

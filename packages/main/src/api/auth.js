@@ -12,13 +12,12 @@ export const authAPI = {
         body: JSON.stringify({ email, password }),
       });
 
+      const data = await response.json();
+      
       if (!response.ok) {
-        throw new Error('Login failed');
+        throw new Error(data.message || 'Login failed');
       }
 
-      const data = await response.json();
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
       return data;
     } catch (error) {
       console.error('Login error:', error);
@@ -36,11 +35,12 @@ export const authAPI = {
         body: JSON.stringify(userData),
       });
 
+      const data = await response.json();
+      
       if (!response.ok) {
-        throw new Error('Registration failed');
+        throw new Error(data.message || 'Registration failed');
       }
 
-      const data = await response.json();
       return data;
     } catch (error) {
       console.error('Registration error:', error);

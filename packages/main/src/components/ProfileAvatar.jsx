@@ -96,7 +96,10 @@ const ProfileAvatar = ({ user, onLogout }) => {
           <div style={{ padding: '8px 0' }}>
             {user.role === 'admin' && (
               <a
-                href="http://localhost:3001"
+                href={`http://localhost:3001?auth=${encodeURIComponent(JSON.stringify({
+                  token: authAPI.getToken(),
+                  user: user
+                }))}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{

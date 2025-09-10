@@ -62,9 +62,15 @@ function App() {
     console.log('📊 Stored user:', storedUser);
     console.log('🔑 Has token:', hasToken);
 
-    if (!hasToken || !storedUser || storedUser.role !== 'admin') {
-      console.log('❌ Not authenticated or not admin, redirecting to login...');
+    if (!hasToken || !storedUser) {
+      console.log('❌ Not authenticated, redirecting to login...');
       window.location.href = 'http://localhost:3000/login';
+      return;
+    }
+
+    if (storedUser.role !== 'admin') {
+      console.log('❌ User is not admin, redirecting to main app...');
+      window.location.href = 'http://localhost:3000';
       return;
     }
 
