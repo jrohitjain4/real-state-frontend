@@ -1,0 +1,312 @@
+/* LoginPage.css - EXACT MATCH */
+
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Main Page */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e5e5e5;
+  padding: 40px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Container */
+.login-container {
+  width: 100%;
+  max-width: 1200px;
+  height: 650px;
+  display: flex;
+  background-color: #ffffff;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Left Side - Form */
+.login-form-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  background-color: #ffffff;
+}
+
+.form-content {
+  width: 100%;
+  max-width: 380px;
+}
+
+/* Brand */
+.brand-logo {
+  font-size: 32px;
+  font-weight: 600;
+  color: #000;
+  margin-bottom: 48px;
+}
+
+.brand-logo span::after {
+  content: '.';
+  color: #6B46C1;
+}
+
+/* Welcome Text */
+.welcome-title {
+  font-size: 40px;
+  font-weight: 700;
+  color: #000;
+  margin-bottom: 12px;
+}
+
+.welcome-subtitle {
+  font-size: 16px;
+  color: #6b7280;
+  margin-bottom: 36px;
+}
+
+/* OAuth Buttons */
+.oauth-buttons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+/* Custom styling for Google button */
+.google-button-container {
+  flex: 1;
+  height: 48px;
+  border: 1px solid #dadce0;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: white;
+  transition: background 0.2s;
+}
+
+.google-button-container:hover {
+  background: #f8f9fa;
+}
+
+/* Facebook Button */
+.oauth-button.facebook-button {
+  flex: 1;
+  height: 48px;
+  background-color: #1877F2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Divider */
+.divider {
+  text-align: center;
+  margin: 24px 0;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+/* Form */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group input {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  font-size: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background-color: #f9fafb;
+  outline: none;
+}
+
+.form-group input:focus {
+  border-color: #6B46C1;
+  background-color: white;
+}
+
+/* Password Field */
+.password-wrapper {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.remember-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.forgot-link {
+  font-size: 14px;
+  color: #6B46C1;
+  text-decoration: none;
+}
+
+/* Login Button */
+.login-button {
+  width: 100%;
+  height: 48px;
+  background-color: #6B46C1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-button:hover {
+  background-color: #5a3bb0;
+}
+
+/* Signup Link */
+.signup-text {
+  text-align: center;
+  font-size: 14px;
+  color: #6b7280;
+  margin-top: 24px;
+}
+
+.signup-link {
+  color: #6B46C1;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+/* Right Side */
+.login-image-section {
+  flex: 1;
+  background-color: #364152;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 60px;
+}
+
+/* Door Container - Actually a rounded rectangle */
+.door-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Door Frame - This is the image container */
+.door-frame {
+  width: 380px;
+  height: 480px;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Door Content - The house image */
+.door-content {
+ 
+  background: url('https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800&auto=format&fit=crop') center/cover;
+  position: relative;
+  height: 1000px !important;
+  width: 1000px !important;
+}
+
+/* Text Overlay */
+.overlay-text {
+  position: absolute;
+  bottom: 80px;
+  right: 40px;
+  background: white;
+  padding: 24px 28px;
+  border-radius: 8px;
+  max-width: 250px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #1f2937;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Error message */
+.error-message {
+  background-color: #fee2e2;
+  color: #dc2626;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+/* Hide Google button default styles */
+#googleSignInButton {
+  display: none !important;
+}
+
+/* Media Queries */
+@media (max-width: 1024px) {
+  .login-container {
+    margin: 20px;
+    height: auto;
+    min-height: 600px;
+  }
+  
+  .login-form-section,
+  .login-image-section {
+    padding: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .login-page {
+    padding: 0;
+  }
+  
+  .login-container {
+    flex-direction: column;
+    border-radius: 0;
+    height: 100vh;
+  }
+  
+  .login-image-section {
+    display: none;
+  }
+}
