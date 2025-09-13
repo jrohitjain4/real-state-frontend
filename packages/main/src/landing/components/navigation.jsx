@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from "react";
+import "./navigation.css";
 import { authAPI } from "../../api/auth";
 import ProfileAvatar from "../../components/ProfileAvatar";
-
+import LocationSelector from "./LocationSelector/LocationSelector";
 export const Navigation = (props) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState({
+    id: 1,
+    name: "New Delhi",
+    state: "Delhi",
+    propertyCount: 3456
+  });
 
   useEffect(() => {
     // Check if user is authenticated on component mount
@@ -42,6 +49,12 @@ export const Navigation = (props) => {
     setIsAuthenticated(false);
   };
 
+  const handleLocationChange = (location) => {
+    setSelectedLocation(location);
+    // You can pass this to parent or trigger any action
+    console.log('Selected location:', location);
+  };
+
   return (
     <nav id="menu" className="navbar navbar-default navbar-fixed-top">
       <div className="container">
@@ -58,9 +71,18 @@ export const Navigation = (props) => {
             <span className="icon-bar"></span>{" "}
             <span className="icon-bar"></span>{" "}
           </button>
-          <a className="navbar-brand page-scroll" href="#page-top" style={{ color: '#4d2f6a' }}>
-            GETYOURDREAM
-          </a>{" "}
+          
+          <div className="navbar-brand-section">
+            <a className="navbar-brand page-scroll" href="#page-top">
+              RealEstate
+            </a>
+            
+            {/* Location Navigation */}
+            <LocationSelector 
+              currentLocation={selectedLocation}
+              onLocationChange={handleLocationChange}
+            />
+          </div>
         </div>
 
         <div
@@ -69,36 +91,35 @@ export const Navigation = (props) => {
         >
           <ul className="nav navbar-nav navbar-right">
             <li>
-              <a href="#features" className="page-scroll">
+              <a href="#features" className="page-scroll nav-link">
                 Buy
               </a>
             </li>
             <li>
-              <a href="#services" className="page-scroll">
+              <a href="#services" className="page-scroll nav-link">
                 Rent
               </a>
             </li>
             <li>
-              <a href="#testimonials" className="page-scroll">
+              <a href="#testimonials" className="page-scroll nav-link">
                 Sell
               </a>
             </li>
             <li>
-              <a href="#services" className="page-scroll">
-                  Services
+              <a href="#services" className="page-scroll nav-link">
+                Services
               </a>
             </li>
             <li>
-              <a href="#about" className="page-scroll">
-                  About
+              <a href="#about" className="page-scroll nav-link">
+                About
               </a>
             </li>
             <li>
-              <a href="#contact" className="page-scroll">
-                  Contact
+              <a href="#contact" className="page-scroll nav-link">
+                Contact
               </a>
             </li>
-            
             
             {/* Authentication Section */}
             <li className="auth-section">

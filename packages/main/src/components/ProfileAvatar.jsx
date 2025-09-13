@@ -3,6 +3,9 @@ import { authAPI } from '../api/auth';
 
 const ProfileAvatar = ({ user, onLogout }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  if (!user || !user.name) {
+    return null; // or return a default avatar
+  }
 
   const handleLogout = () => {
     authAPI.logout();

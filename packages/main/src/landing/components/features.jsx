@@ -1,4 +1,5 @@
 import React from "react";
+import "./features.css";
 
 export const Features = (props) => {
   return (
