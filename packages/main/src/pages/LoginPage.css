@@ -1,312 +1,364 @@
-/* LoginPage.css - EXACT MATCH */
-
-/* Reset */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* --- CSS Variables for Easy Theming --- */
+:root {
+  --primary-color: #0052cc; /* A professional blue */
+  --primary-color-hover: #0041a3;
+  --background-color: #f4f5f7;
+  --container-bg: #ffffff;
+  --text-color-dark: #172b4d;
+  --text-color-light: #6b778c;
+  --border-color: #dfe1e6;
+  --error-color: #de350b;
+  --error-bg-color: #ffebe5;
+  --border-radius: 12px; /* Slightly more rounded corners */
+  --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-/* Main Page */
-.login-page {
-  min-height: 100vh;
+/* --- Base & Root Styles --- */
+.LoginPage-root {
   display: flex;
-  align-items: center;
   justify-content: center;
-  background-color: #e5e5e5;
-  padding: 40px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  align-items: center;
+  min-height: 100vh;
+  background-color: var(--background-color);
+  padding: 2rem 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 16px;
 }
 
-/* Container */
-.login-container {
+.LoginPage-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   width: 100%;
-  max-width: 1200px;
-  height: 650px;
-  display: flex;
-  background-color: #ffffff;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
+  /* --- FINAL UPDATE: Slightly increased width to accommodate larger elements --- */
+  max-width: 950px; 
+  background-color: var(--container-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
   overflow: hidden;
 }
 
-/* Left Side - Form */
-.login-form-section {
-  flex: 1;
+/* --- Left Side: Form Section --- */
+.LoginPage-formSection {
   display: flex;
-  align-items: center;
   justify-content: center;
-  padding: 60px;
-  background-color: #ffffff;
+  align-items: center;
+  padding: 4rem; /* More generous padding */
 }
 
-.form-content {
+.LoginPage-formContent {
   width: 100%;
-  max-width: 380px;
+  /* --- FINAL UPDATE: Increased width to fix the Google button rendering --- */
+  max-width: 400px; 
 }
 
-/* Brand */
-.brand-logo {
-  font-size: 32px;
+.LoginPage-brandLogo {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: var(--text-color-dark);
+  margin-bottom: 2rem;
+}
+
+.LoginPage-title {
+  /* --- FINAL UPDATE: Increased font size --- */
+  font-size: 2.5rem;
   font-weight: 600;
-  color: #000;
-  margin-bottom: 48px;
+  color: var(--text-color-dark);
+  margin-bottom: 0.65rem;
 }
 
-.brand-logo span::after {
-  content: '.';
-  color: #6B46C1;
+.LoginPage-subtitle {
+  /* --- FINAL UPDATE: Increased font size --- */
+  font-size: 1.8rem;
+  color: var(--text-color-light);
+  margin-bottom: 1.5rem;
 }
 
-/* Welcome Text */
-.welcome-title {
-  font-size: 40px;
-  font-weight: 700;
-  color: #000;
-  margin-bottom: 12px;
+/* Google Button & Divider */
+.LoginPage-oauthSection {
+  margin-bottom: 1.5rem;
 }
 
-.welcome-subtitle {
-  font-size: 16px;
-  color: #6b7280;
-  margin-bottom: 36px;
-}
-
-/* OAuth Buttons */
-.oauth-buttons {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-/* Custom styling for Google button */
-.google-button-container {
-  flex: 1;
-  height: 48px;
-  border: 1px solid #dadce0;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  background: white;
-  transition: background 0.2s;
-}
-
-.google-button-container:hover {
-  background: #f8f9fa;
-}
-
-/* Facebook Button */
-.oauth-button.facebook-button {
-  flex: 1;
-  height: 48px;
-  background-color: #1877F2;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-/* Divider */
-.divider {
-  text-align: center;
-  margin: 24px 0;
-  color: #9ca3af;
-  font-size: 14px;
-}
-
-/* Form */
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group input {
+.LoginPage-googleButtonContainer {
   width: 100%;
-  height: 48px;
-  padding: 0 16px;
-  font-size: 16px;
-  border: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: center;
+}
+/* This rule helps ensure the Google-injected elements behave correctly */
+.LoginPage-googleButtonContainer > div {
+  width: 100% !important; 
+  border-radius: 6px !important;
+}
+
+.LoginPage-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--text-color-light);
+  font-size: 1.2rem; /* Increased size */
+  margin: 1rem 0;
+}
+.LoginPage-divider::before,
+.LoginPage-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--border-color);
+}
+.LoginPage-divider:not(:empty)::before {
+  margin-right: 1em;
+}
+.LoginPage-divider:not(:empty)::after {
+  margin-left: 1em;
+}
+
+/* Error Message */
+.LoginPage-errorMessage {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--error-bg-color);
+  color: var(--error-color);
+  padding: 0.8rem 1rem;
   border-radius: 6px;
-  background-color: #f9fafb;
+  font-size: 0.95rem; /* Increased size */
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--error-color);
+}
+.LoginPage-errorMessage svg {
+  flex-shrink: 0;
+}
+
+/* --- Form Styles --- */
+.LoginPage-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.LoginPage-formGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.LoginPage-label {
+  /* --- FINAL UPDATE: Increased font size --- */
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--text-color-dark);
+  margin-bottom: 0.5rem;
+}
+
+.LoginPage-input {
+  width: 100%;
+  /* --- FINAL UPDATE: Increased padding for a better feel --- */
+  padding: 1rem;
+  font-size: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: var(--container-bg);
+  color: var(--text-color-dark);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.LoginPage-input::placeholder {
+  color: #97a0af;
+}
+
+.LoginPage-input:focus {
   outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.2);
 }
 
-.form-group input:focus {
-  border-color: #6B46C1;
-  background-color: white;
+.LoginPage-input:disabled {
+  background-color: #f4f5f7;
+  cursor: not-allowed;
 }
 
-/* Password Field */
-.password-wrapper {
+.LoginPage-passwordWrapper {
   position: relative;
+  display: flex;
+  align-items: center;
+}
+.LoginPage-passwordWrapper .LoginPage-input {
+  padding-right: 3.5rem;
 }
 
-.password-toggle {
+.LoginPage-passwordToggleBtn {
   position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
+  right: 0.5rem;
+  height: 3.5rem;
+  width: 3.5rem;
+  background: transparent;
   border: none;
   cursor: pointer;
-  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color-light);
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+.LoginPage-passwordToggleBtn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
-/* Form Actions */
-.form-actions {
+.LoginPage-formActions {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 28px;
+  /* --- FINAL UPDATE: Increased font size --- */
+  font-size: 1.2rem;
 }
 
-.remember-checkbox {
+.LoginPage-checkboxWrapper {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: #6b7280;
+  gap: 0.6rem;
+  cursor: pointer;
+  color: var(--text-color-light);
+}
+.LoginPage-checkboxWrapper input[type="checkbox"] {
+  width: 1.2rem;
+  height: 1.2rem;
+  accent-color: var(--primary-color);
 }
 
-.forgot-link {
-  font-size: 14px;
-  color: #6B46C1;
+.LoginPage-forgotPasswordLink {
+  color: var(--primary-color);
   text-decoration: none;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+.LoginPage-forgotPasswordLink:hover {
+  text-decoration: underline;
 }
 
-/* Login Button */
-.login-button {
-  width: 100%;
-  height: 48px;
-  background-color: #6B46C1;
-  color: white;
+/* Submit Button */
+.LoginPage-submitButton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem; /* Increased padding */
+  font-size: 1.35rem; /* Increased font size */
+  font-weight: 600;
+  color: #fff;
+  background-color: #4d2f6a;
   border: none;
   border-radius: 6px;
-  font-size: 16px;
-  font-weight: 600;
   cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+.LoginPage-submitButton:hover {
+  background-color: #664981;
+  box-shadow: 0 2px 8px rgba(0, 82, 204, 0.3);
+}
+.LoginPage-submitButton:disabled {
+  background-color: #a5adba;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
-.login-button:hover {
-  background-color: #5a3bb0;
+/* Spinner Animation */
+.LoginPage-spinner {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.LoginPage-spinnerCircle {
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-linecap: round;
+  stroke-dasharray: 80;
+  stroke-dashoffset: 60;
 }
 
-/* Signup Link */
-.signup-text {
+.LoginPage-signupText {
   text-align: center;
-  font-size: 14px;
-  color: #6b7280;
-  margin-top: 24px;
+  margin-top: 2rem;
+  font-size: 1.2rem; /* Increased size */
+  color: var(--text-color-light);
 }
-
-.signup-link {
-  color: #6B46C1;
+.LoginPage-signupLink {
+  color: var(--primary-color);
+  font-weight: 700;
   text-decoration: none;
-  font-weight: 500;
+  margin-left: 0.35rem;
+}
+.LoginPage-signupLink:hover {
+  text-decoration: underline;
 }
 
-/* Right Side */
-.login-image-section {
-  flex: 1;
-  background-color: #364152;
+/* --- Right Side: Image Section --- */
+.LoginPage-imageSection {
+  background-color: #0c1a3e;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  padding: 60px;
+  background-image: url('https://images.unsplash.com/photo-1580587771525-78b9dba3b914?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1974&q=80');
+  background-size: cover;
+  background-position: center;
 }
 
-/* Door Container - Actually a rounded rectangle */
-.door-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Door Frame - This is the image container */
-.door-frame {
-  width: 380px;
-  height: 480px;
-  border-radius: 16px;
-  overflow: hidden;
-  position: relative;
-}
-
-/* Door Content - The house image */
-.door-content {
- 
-  background: url('https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800&auto=format&fit=crop') center/cover;
-  position: relative;
-  height: 1000px !important;
-  width: 1000px !important;
-}
-
-/* Text Overlay */
-.overlay-text {
+.LoginPage-doorContainer {
   position: absolute;
-  bottom: 80px;
-  right: 40px;
-  background: white;
-  padding: 24px 28px;
-  border-radius: 8px;
-  max-width: 250px;
-  font-size: 15px;
-  line-height: 1.6;
-  color: #1f2937;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  inset: 0;
+  background: linear-gradient(to top, rgba(12, 26, 62, 0.8), rgba(12, 26, 62, 0.2));
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 4rem;
 }
 
-/* Error message */
-.error-message {
-  background-color: #fee2e2;
-  color: #dc2626;
-  padding: 12px 16px;
-  border-radius: 6px;
-  margin-bottom: 20px;
-  font-size: 14px;
+.LoginPage-overlayText {
+  color: #ffffff;
+  /* --- FINAL UPDATE: Increased font size --- */
+  font-size: 2.2rem;
+  font-weight: 500;
+  line-height: 1.4;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-/* Hide Google button default styles */
-#googleSignInButton {
-  display: none !important;
-}
-
-/* Media Queries */
+/* --- Responsive Design --- */
 @media (max-width: 1024px) {
-  .login-container {
-    margin: 20px;
-    height: auto;
-    min-height: 600px;
+  .LoginPage-formSection {
+    padding: 3rem 2rem;
   }
-  
-  .login-form-section,
-  .login-image-section {
-    padding: 40px;
+  .LoginPage-doorContainer {
+    padding: 3rem;
+  }
+  .LoginPage-overlayText {
+    font-size: 1.8rem;
   }
 }
 
 @media (max-width: 768px) {
-  .login-page {
+  .LoginPage-root {
     padding: 0;
+    align-items: flex-start;
   }
-  
-  .login-container {
-    flex-direction: column;
+  .LoginPage-container {
+    grid-template-columns: 1fr;
     border-radius: 0;
-    height: 100vh;
+    box-shadow: none;
+    min-height: 100vh;
   }
-  
-  .login-image-section {
+  .LoginPage-imageSection {
     display: none;
+  }
+  .LoginPage-formSection {
+    padding: 2.5rem 1.5rem;
+    align-items: flex-start;
+  }
+  .LoginPage-formContent {
+    max-width: none;
+  }
+  .LoginPage-title {
+    font-size: 2rem;
+  }
+  .LoginPage-subtitle {
+    margin-bottom: 1.5rem;
   }
 }

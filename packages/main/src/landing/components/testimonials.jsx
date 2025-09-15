@@ -1,4 +1,5 @@
 import React from "react";
+import "./testimonials.css";
 
 export const Testimonials = (props) => {
   return (
