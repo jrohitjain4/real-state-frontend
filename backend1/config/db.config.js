@@ -4,7 +4,7 @@ module.exports = {
     HOST: process.env.DB_HOST || 'localhost',
     USER: process.env.DB_USER || 'postgres',
     PASSWORD: process.env.DB_PASSWORD || 'your_password',
-    DB: process.env.DB_NAME || 'rbac_db',
+    DB: process.env.DB_NAME || 'real_state',
     dialect: 'postgres',
     pool: {
         max: 5,

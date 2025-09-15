@@ -52,7 +52,7 @@ async function initializeDatabase() {
 
         await tempSequelize.close();
 
-        await db.sequelize.sync({ force: true }); 
+        await db.sequelize.sync({ force: false }); 
         console.log('Database synced successfully');
     } catch (err) {
         console.log('Failed to initialize database: ' + err.message);
@@ -69,7 +69,10 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Define Routes
 app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/data', require('./routes/userRoutes')); // Renamed for clarity
+app.use('/api/data', require('./routes/admin'));
+app.use('/api/data', require('./routes/userRoutes'));
+app.use('/api', require('./routes/categoryRoutes'));
+app.use('/api', require('./routes/propertyRoutes'));
 
 // Initialize database and start server
 initializeDatabase().then(() => {

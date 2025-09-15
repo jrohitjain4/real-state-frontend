@@ -3,8 +3,11 @@ const User = db.User;
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const fs = require('fs');
+const uploadKYC = require('../middleware/upLoadKYC');
 
-// Register a new user
+
+
 exports.register = async (req, res) => {
     try {
         const { name, email, password, role, googleId, picture } = req.body;
@@ -392,5 +395,61 @@ exports.uploadProfilePhoto = async (req,res) => {
             success: false,
             message: 'Server error during photo upload' 
         });
+    }
+};
+
+
+exports.uploadKYCDocument = async (req, res) => {
+
+    try {
+        const { documentType } = req.body;
+        
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'No file uploaded'
+            });
+        }
+
+        const user = await User.findByPk(req.user.id);
+        const filePath = `/uploads/kyc/${req.file.filename}`;
+
+        
+        if (documentType === 'aadhar') {
+            // Delete old file if exists
+            if (user.aadharPhoto) {
+                const oldPath = path.join(__dirname, '..', user.aadharPhoto);
+                if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+            }
+            user.aadharPhoto = filePath;
+        } else if (documentType === 'pan') {
+            // Delete old file if exists
+            if (user.panPhoto) {
+                const oldPath = path.join(__dirname, '..', user.panPhoto);
+                if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+            }
+            user.panPhoto = filePath;
+        }   else {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid document type'
+            });
+        }
+
+        user.checkProfileCompletion();
+        await user.save();
+        res.status(200).json({
+            success: true,
+            message: `${documentType.toUpperCase()} document uploaded successfully`,
+            profileCompleted: user.profileCompleted,
+            filePath
+        });
+    } catch (err) {
+        // Delete uploaded file on error
+        if (req.file && req.file.path) {
+            fs.unlinkSync(req.file.path);
+        }
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 };

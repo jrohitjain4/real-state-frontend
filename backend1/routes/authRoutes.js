@@ -3,6 +3,7 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const { auth } = require('../middleware/auth');
 const upload = require('../middleware/upload');
+const uploadKYC = require('../middleware/upLoadKYC');
 
 const { 
     validateRegistration, 
@@ -30,6 +31,7 @@ router.put('/profile', auth, validateProfileUpdate, handleValidationErrors, auth
 router.post('/upload-photo', auth, upload.single('profilePhoto'), authController.uploadProfilePhoto);
 
 
+router.post('/upload-kyc', auth, uploadKYC.single('document'), authController.uploadKYCDocument);
 
 
 module.exports = router;

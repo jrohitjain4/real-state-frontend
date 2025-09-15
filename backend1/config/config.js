@@ -5,7 +5,7 @@ module.exports = {
   development: {
     username: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || 'your_password',
-    database: process.env.DB_NAME || 'rbac_db',
+    database: process.env.DB_NAME || 'real_state',
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 5432,
     dialect: 'postgres', // Isko postgres kar dein
@@ -14,7 +14,7 @@ module.exports = {
   test: {
     username: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || 'your_password',
-    database: process.env.DB_NAME || 'rbac_db_test',
+    database: process.env.DB_NAME || 'real_state_test',
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 5432,
     dialect: 'postgres'

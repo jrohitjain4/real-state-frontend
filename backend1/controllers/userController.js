@@ -117,3 +117,86 @@ exports.deleteUser = async (req, res) => {
         res.status(500).send('Server error');
     }
 };
+
+function calculateProfileCompletion(user) {
+    const fields = [
+        'phone', 'profilePhoto', 'aadharNumber', 'aadharPhoto',
+        'panNumber', 'panPhoto', 'address', 'city', 'state', 'pincode'
+    ];
+    const filledFields = fields.filter(field => user[field] && user[field] !== '').length;
+    return Math.round((filledFields / fields.length) * 100);
+}
+
+exports.getProfileStatus = async (req,res) => {
+    try {
+        const user = await User.findByPk(req.user.id, {
+            attributes: [
+                'id', 'name', 'email', 'profileCompleted', 'kycVerified',
+                'phone', 'address', 'city', 'state', 'pincode',
+                'aadharNumber', 'panNumber', 'profilePhoto', 'aadharPhoto', 'panPhoto'
+            ]
+        }); 
+
+        const completionPercentage = calculateProfileCompletion(user);
+        res.json({
+            success: true,
+            user,
+            completionPercentage,
+            canPostProperty: user.profileCompleted
+        })
+}catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+        }
+};
+
+exports.updateKYCDetails = async (req,res) => {
+   try {
+    const { aadharNumber, panNumber, address, city, state, pincode, phone } = req.body;
+    const userId = req.user.id;
+     
+    const user = await User.findByPk(userId);
+      
+
+    if (aadharNumber && !/^\d{12}$/.test(aadharNumber)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid Aadhar number'
+        });
+    }
+
+     
+      if (panNumber && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(panNumber)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid PAN number'
+        });
+    }
+    
+    if (phone) user.phone = phone;
+    if (aadharNumber) user.aadharNumber = aadharNumber;
+    if (panNumber) user.panNumber = panNumber;
+    if (address) user.address = address;
+    if (city) user.city = city;
+    if (state) user.state = state;
+    if (pincode) user.pincode = pincode;
+
+
+    user.checkProfileCompletion();
+    
+    await user.save();
+
+
+    res.status(200).json({
+        success: true,
+        message: 'KYC details updated successfully',
+        profileCompleted: user.profileCompleted
+    });
+
+
+
+   }  catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
