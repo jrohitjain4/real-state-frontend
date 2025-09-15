@@ -78,10 +78,7 @@ export const Navigation = (props) => {
             </a>
             
             {/* Location Navigation */}
-            <LocationSelector 
-              currentLocation={selectedLocation}
-              onLocationChange={handleLocationChange}
-            />
+            <LocationSelector />
           </div>
         </div>
 
@@ -120,7 +117,6 @@ export const Navigation = (props) => {
                 Contact
               </a>
             </li>
-            
             {/* Authentication Section */}
             <li className="auth-section">
               {isAuthenticated && user ? (
