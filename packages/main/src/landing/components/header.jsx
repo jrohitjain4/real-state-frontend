@@ -1,25 +1,30 @@
-import React from "react";
-import "./header.css";
+// landing/components/header.jsx
+import React from 'react';
+import PropertySearchFilter from './PropertySearchFilter/PropertySearchFilter';
+import PropertyListing from './PropertyListing/PropertyListing';
 
-export const Header = (props) => {
+export const Header = ({ data, onSearch }) => {
+  const handleSearch = (searchData) => {
+    console.log('Search clicked with data:', searchData);
+    if (onSearch) {
+      onSearch(searchData);
+    }
+  };
+
   return (
     <header id="header">
       <div className="intro">
         <div className="overlay">
           <div className="container">
             <div className="row">
-              <div className="col-md-8 col-md-offset-2 intro-text">
-                {/* <h1>
-                  {props.data ? props.data.title : "Loading"}
-                  <span></span>
-                </h1> */}
-                <p>{props.data ? props.data.paragraph : "Loading"}</p>
-                <a
-                  href="#features"
-                  className="btn btn-custom btn-lg page-scroll"
-                >
-                  Learn More
-                </a>{" "}
+              <div className="col-md-12 intro-text">
+                <PropertySearchFilter onSearch={handleSearch} />
+                {data && (
+                  <>
+                    <h1>{data.title}</h1>
+                    <p>{data.paragraph}</p>
+                  </>
+                )}
               </div>
             </div>
           </div>

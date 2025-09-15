@@ -1,5 +1,6 @@
 // components/LocationSelector/LocationSelector.jsx
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from '../../../contexts/LocationContext';
 import './LocationSelector.css';
 
 const MOCK_LOCATIONS = [
@@ -123,7 +124,8 @@ const MOCK_LOCATIONS = [
   { id: 114, name: 'Zirakpur' }
 ];
 
-const LocationSelector = ({ onLocationChange, currentLocation }) => {
+const LocationSelector = () => {
+  const { currentLocation, setCurrentLocation } = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredLocations, setFilteredLocations] = useState(MOCK_LOCATIONS);
@@ -154,7 +156,7 @@ const LocationSelector = ({ onLocationChange, currentLocation }) => {
   };
 
   const handleLocationSelect = (location) => {
-    onLocationChange(location);
+    setCurrentLocation(location);
     setIsOpen(false);
     setSearchTerm('');
     setFilteredLocations(MOCK_LOCATIONS);

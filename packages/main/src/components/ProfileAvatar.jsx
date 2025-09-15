@@ -3,9 +3,7 @@ import { authAPI } from '../api/auth';
 
 const ProfileAvatar = ({ user, onLogout }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  if (!user || !user.name) {
-    return null; // or return a default avatar
-  }
+  const userName = user?.name || user?.username || user?.email || 'User';
 
   const handleLogout = () => {
     authAPI.logout();
@@ -14,6 +12,7 @@ const ProfileAvatar = ({ user, onLogout }) => {
   };
 
   const getInitials = (name) => {
+    if (!name) return 'U';
     return name
       .split(' ')
       .map(word => word.charAt(0))
@@ -23,6 +22,7 @@ const ProfileAvatar = ({ user, onLogout }) => {
   };
 
   const getAvatarColor = (name) => {
+    if (!name) return '#4ECDC4';
     const colors = [
       '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
       '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'
@@ -40,7 +40,7 @@ const ProfileAvatar = ({ user, onLogout }) => {
           width: '40px',
           height: '40px',
           borderRadius: '50%',
-          backgroundColor: getAvatarColor(user.name),
+          backgroundColor: getAvatarColor(userName),
           color: 'white',
           display: 'flex',
           alignItems: 'center',
@@ -86,7 +86,7 @@ const ProfileAvatar = ({ user, onLogout }) => {
             }}
           >
             <div style={{ fontWeight: 'bold', color: '#333', marginBottom: '4px' }}>
-              {user.name}
+              {userName}
             </div>
             <div style={{ fontSize: '14px', color: '#666' }}>
               {user.email}
