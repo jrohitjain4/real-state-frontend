@@ -5,34 +5,46 @@ import './PropertyCard.css';
 const PropertyCard = ({ property }) => {
   const {
     id,
-    projectName,
-    builderName,
-    builderLogo,
-    marketedBy,
-    location,
+    title,
+    description,
+    address,
+    locality,
     city,
-    configurations,
-    priceRange,
-    mainImage,
-    propertyType,
-    status,
-    featured
+    state,
+    bedrooms,
+    bathrooms,
+    superArea,
+    price,
+    furnishingStatus,
+    possessionStatus,
+    images,
+    subcategory,
+    owner,
+    features
   } = property;
 
   const formatPrice = (price) => {
-    if (price >= 10000000) {
-      return `₹ ${(price / 10000000).toFixed(2)} Cr`;
-    } else if (price >= 100000) {
-      return `₹ ${(price / 100000).toFixed(0)} Lac`;
+    const numPrice = parseFloat(price);
+    if (numPrice >= 10000000) {
+      return `₹ ${(numPrice / 10000000).toFixed(2)} Cr`;
+    } else if (numPrice >= 100000) {
+      return `₹ ${(numPrice / 100000).toFixed(0)} Lac`;
     }
-    return `₹ ${price.toLocaleString('en-IN')}`;
+    return `₹ ${numPrice.toLocaleString('en-IN')}`;
   };
 
   const getConfigurationText = () => {
-    if (configurations.length === 1) {
-      return `${configurations[0]} ${propertyType}s`;
+    if (bedrooms && bathrooms) {
+      return `${bedrooms} BHK ${subcategory?.name || 'Property'}`;
     }
-    return `${configurations[0]} to ${configurations[configurations.length - 1]} ${propertyType}s`;
+    return subcategory?.name || 'Property';
+  };
+
+  const getMainImage = () => {
+    if (images && images.length > 0) {
+      return images[0].imageUrl;
+    }
+    return '/img/portfolio/01-small.jpg'; // fallback image
   };
 
   return (
@@ -40,30 +52,25 @@ const PropertyCard = ({ property }) => {
       {/* Property Image */}
       <div className="property-image-container">
         <img 
-          src={mainImage} 
-          alt={projectName}
+          src={getMainImage()} 
+          alt={title}
           className="property-image"
         />
-        {status && (
-          <span className="property-status">{status}</span>
+        {possessionStatus && (
+          <span className="property-status">{possessionStatus.replace('-', ' ').toUpperCase()}</span>
         )}
       </div>
 
       {/* Property Details */}
       <div className="property-details">
-        {/* Builder Info */}
+        {/* Property Info */}
         <div className="builder-info">
-          <img 
-            src={builderLogo} 
-            alt={builderName}
-            className="builder-logo"
-          />
           <div className="project-info">
-            <h3 className="project-name">{projectName}</h3>
-            <p className="builder-name">by {builderName}</p>
-            <p className="property-location">{location}</p>
-            {marketedBy && (
-              <p className="marketed-by">Marketed by {marketedBy}</p>
+            <h3 className="project-name">{title}</h3>
+            <p className="builder-name">by {owner ? `${owner.firstName} ${owner.lastName}` : 'Private Owner'}</p>
+            <p className="property-location">{locality}, {city}</p>
+            {superArea && (
+              <p className="property-area">CARPET AREA {superArea} sqft</p>
             )}
           </div>
         </div>
@@ -72,9 +79,15 @@ const PropertyCard = ({ property }) => {
         <div className="property-footer">
           <div className="configuration">
             <span className="config-text">{getConfigurationText()}</span>
+            {furnishingStatus && (
+              <span className="furnishing-status">STATUS {furnishingStatus.replace('-', ' ').toUpperCase()}</span>
+            )}
           </div>
           <div className="price-info">
-            <span className="price-label">{priceRange.label || `${formatPrice(priceRange.min)} onwards`}</span>
+            <span className="price-label">{formatPrice(price)}</span>
+            {superArea && (
+              <span className="price-per-sqft">₹{Math.round(parseFloat(price) / superArea)} per sqft</span>
+            )}
           </div>
         </div>
       </div>

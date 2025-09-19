@@ -10,7 +10,7 @@ const uploadKYC = require('../middleware/upLoadKYC');
 
 exports.register = async (req, res) => {
     try {
-        const { name, email, password, role, googleId, picture } = req.body;
+        const { firstName, lastName, email, password, role } = req.body;
 
         // Check if user already exists by email
         let user = await User.findOne({ where: { email } });
@@ -21,21 +21,8 @@ exports.register = async (req, res) => {
             });
         }
 
-        // Check if Google OAuth user already exists by googleId
-        if (googleId) {
-            let googleUser = await User.findOne({ where: { googleId } });
-            if (googleUser) {
-                return res.status(400).json({ 
-                    success: false,
-                    message: 'User already exists with this Google account' 
-                });
-            }
-        }
-
-        // Create user with selected role and Google OAuth data
-        const userData = { name, email, password, role };
-        if (googleId) userData.googleId = googleId;
-        if (picture) userData.picture = picture;
+        // Create user with selected role
+        const userData = { firstName, lastName, email, password, role };
         
         user = await User.create(userData);
 
@@ -44,7 +31,7 @@ exports.register = async (req, res) => {
             user: { 
                 id: user.id, 
                 role: user.role,
-                name: user.name,
+                name: `${user.firstName} ${user.lastName}`,
                 email: user.email
             } 
         };
@@ -57,10 +44,11 @@ exports.register = async (req, res) => {
                 token,
                 user: {
                     id: user.id,
-                    name: user.name,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    name: `${user.firstName} ${user.lastName}`,
                     email: user.email,
                     role: user.role,
-                    picture: user.picture
                 }
             });
         });
@@ -88,18 +76,13 @@ exports.login = async (req, res) => {
             });
         }
 
-        // For Google OAuth users, skip password check
-        if (user.googleId && password === 'google_oauth_user') {
-            // This is a Google OAuth user, allow login without password verification
-        } else {
-            // Check password for regular users
-            const isMatch = await bcrypt.compare(password, user.password);
-            if (!isMatch) {
-                return res.status(400).json({ 
-                    success: false,
-                    message: 'Invalid credentials' 
-                });
-            }
+        // Check password for users
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ 
+                success: false,
+                message: 'Invalid credentials' 
+            });
         }
 
         // Create and return a token
@@ -107,9 +90,8 @@ exports.login = async (req, res) => {
             user: { 
                 id: user.id, 
                 role: user.role,
-                name: user.name,
-                email: user.email,
-                profilePhoto: user.profilePhoto || user.picture
+                name: `${user.firstName} ${user.lastName}`,
+                email: user.email
             } 
         };
         
@@ -121,10 +103,11 @@ exports.login = async (req, res) => {
                 token,
                 user: {
                     id: user.id,
-                    name: user.name,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    name: `${user.firstName} ${user.lastName}`,
                     email: user.email,
                     role: user.role,
-                    picture: user.picture
                 }
             });
         });
@@ -286,7 +269,7 @@ exports.logout = async (req, res) => {
 exports.getProfile = async (req,res) => {
     try {
         const user = await User.findByPk(req.user.id, {
-            attributes: ['id', 'name', 'email', 'role', 'phone', 'profilePhoto']
+            attributes: ['id', 'firstName', 'lastName', 'email', 'role', 'phoneNumber']
         });
 
        res.json({
@@ -305,7 +288,7 @@ exports.getProfile = async (req,res) => {
 // Update current user profile
 exports.updateProfile = async (req, res) => {
     try {
-        const { name, email, phone } = req.body;
+        const { firstName, lastName, email, phoneNumber } = req.body;
         const userId = req.user.id;
 
         const user = await User.findByPk(userId);
@@ -328,9 +311,10 @@ exports.updateProfile = async (req, res) => {
         }
 
         // Update user fields
-        if (name) user.name = name;
+        if (firstName) user.firstName = firstName;
+        if (lastName) user.lastName = lastName;
         if (email) user.email = email;
-        if (phone !== undefined) user.phone = phone; // Allow empty string
+        if (phoneNumber !== undefined) user.phoneNumber = phoneNumber; // Allow empty string
 
         await user.save();
 
@@ -339,10 +323,12 @@ exports.updateProfile = async (req, res) => {
             message: 'Profile updated successfully',
             user: {
                 id: user.id,
-                name: user.name,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                name: `${user.firstName} ${user.lastName}`,
                 email: user.email,
                 role: user.role,
-                phone: user.phone
+                phoneNumber: user.phoneNumber
             }
         });
 
@@ -376,13 +362,13 @@ exports.uploadProfilePhoto = async (req,res) => {
                 message: 'User not found' 
             });
         }
-       user.profilePhoto = `/uploads/profiles/${req.file.filename}`;
+        // user.profilePhoto = `/uploads/profiles/${req.file.filename}`;
        await user.save();
 
        res.json({
         success: true,
         message: 'Profile photo uploaded successfully',
-        photoUrl: user.profilePhoto
+        photoUrl: null
 
        });
     } catch (err) {
@@ -415,34 +401,10 @@ exports.uploadKYCDocument = async (req, res) => {
         const filePath = `/uploads/kyc/${req.file.filename}`;
 
         
-        if (documentType === 'aadhar') {
-            // Delete old file if exists
-            if (user.aadharPhoto) {
-                const oldPath = path.join(__dirname, '..', user.aadharPhoto);
-                if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-            }
-            user.aadharPhoto = filePath;
-        } else if (documentType === 'pan') {
-            // Delete old file if exists
-            if (user.panPhoto) {
-                const oldPath = path.join(__dirname, '..', user.panPhoto);
-                if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-            }
-            user.panPhoto = filePath;
-        }   else {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid document type'
-            });
-        }
-
-        user.checkProfileCompletion();
-        await user.save();
-        res.status(200).json({
-            success: true,
-            message: `${documentType.toUpperCase()} document uploaded successfully`,
-            profileCompleted: user.profileCompleted,
-            filePath
+        // KYC upload functionality disabled for now
+        return res.status(400).json({
+            success: false,
+            message: 'KYC upload not available'
         });
     } catch (err) {
         // Delete uploaded file on error

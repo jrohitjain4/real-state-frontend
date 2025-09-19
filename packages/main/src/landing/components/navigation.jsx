@@ -88,23 +88,23 @@ export const Navigation = (props) => {
         >
           <ul className="nav navbar-nav navbar-right">
             <li>
-              <a href="#features" className="page-scroll nav-link">
+              <a href="/properties?category=1" className="nav-link">
                 Buy
               </a>
             </li>
             <li>
-              <a href="#services" className="page-scroll nav-link">
+              <a href="/properties?category=2" className="nav-link">
                 Rent
               </a>
             </li>
             <li>
-              <a href="#testimonials" className="page-scroll nav-link">
+              <a href="/properties?category=1" className="nav-link">
                 Sell
               </a>
             </li>
             <li>
-              <a href="#services" className="page-scroll nav-link">
-                Services
+              <a href="/properties" className="nav-link">
+                All Properties
               </a>
             </li>
             <li>
@@ -117,6 +117,18 @@ export const Navigation = (props) => {
                 Contact
               </a>
             </li>
+            {/* User Actions */}
+            {isAuthenticated && user && (
+              <>
+                <li>
+                  <a href="/add-property" className="nav-link">
+                    <i className="fas fa-plus"></i> Add Property
+                  </a>
+                </li>
+              
+              </>
+            )}
+            
             {/* Authentication Section */}
             <li className="auth-section">
               {isAuthenticated && user ? (

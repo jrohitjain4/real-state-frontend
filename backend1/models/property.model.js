@@ -195,7 +195,95 @@ module.exports = (sequelize, Sequelize) => {
         metaDescription: {
             type: Sequelize.TEXT,
             allowNull: true
-        }
+        },
+        propertyType: {
+            type: Sequelize.ENUM('residential', 'land', 'commercial', 'commercial-land', 'farmhouse', 'studio', 'pg'),
+            allowNull: true
+        },
+        
+        // Land specific fields
+        plotArea: {
+            type: Sequelize.INTEGER,
+            allowNull: true
+        },
+        plotLength: {
+            type: Sequelize.INTEGER,
+            allowNull: true
+        },
+        plotBreadth: {
+            type: Sequelize.INTEGER,
+            allowNull: true
+        },
+        plotFacing: {
+            type: Sequelize.STRING,
+            allowNull: true
+        },
+        roadWidth: {
+            type: Sequelize.INTEGER,
+            allowNull: true
+        },
+        openSides: {
+            type: Sequelize.STRING,
+            allowNull: true
+        },
+        
+        // Commercial specific
+        washrooms: {
+            type: Sequelize.INTEGER,
+            allowNull: true
+        },
+        frontage: {
+            type: Sequelize.INTEGER,
+            allowNull: true
+        },
+        
+        // Farmhouse specific
+        totalArea: {
+            type: Sequelize.DECIMAL(10, 2),
+            allowNull: true
+        },
+        openArea: {
+            type: Sequelize.INTEGER,
+            allowNull: true
+        },
+        
+        // PG specific
+        sharingType: {
+            type: Sequelize.ENUM('Single', 'Double', 'Triple', 'Four or More'),
+            allowNull: true
+        },
+        totalBeds: {
+            type: Sequelize.INTEGER,
+            allowNull: true
+        },
+        availableBeds: {
+            type: Sequelize.INTEGER,
+            allowNull: true
+        },
+        gateClosingTime: {
+            type: Sequelize.TIME,
+            allowNull: true
+        },
+        visitorPolicy: {
+            type: Sequelize.ENUM('Not Allowed', 'Limited Hours', 'Allowed'),
+            allowNull: true
+        },
+        noticePeriod: {
+            type: Sequelize.INTEGER,
+            allowNull: true
+        },
+        
+        // Additional fields for land
+        zoning: {
+            type: Sequelize.STRING,
+            allowNull: true
+        },
+        approvedUse: {
+            type: Sequelize.STRING,
+            allowNull: true
+        },
+        
+        // ... rest of existing fields ...
     }, {
         tableName: 'properties'
     });

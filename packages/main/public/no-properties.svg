@@ -1,0 +1,9 @@
+<svg width="150" height="150" viewBox="0 0 150 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="20" y="40" width="110" height="80" rx="8" fill="#f8f9fa" stroke="#e9ecef" stroke-width="2"/>
+  <rect x="30" y="50" width="90" height="45" rx="4" fill="#e9ecef"/>
+  <circle cx="45" cy="65" r="8" fill="#dee2e6"/>
+  <path d="M60 80 L75 65 L90 75 L105 60" stroke="#dee2e6" stroke-width="2" fill="none"/>
+  <rect x="30" y="100" width="90" height="15" rx="2" fill="#dee2e6"/>
+  <rect x="30" y="30" width="20" height="20" rx="4" fill="#4d2f6a" opacity="0.3"/>
+  <text x="75" y="140" text-anchor="middle" fill="#666" font-family="Arial" font-size="12">No Properties Found</text>
+</svg>

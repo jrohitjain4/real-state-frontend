@@ -5,8 +5,9 @@ const fs = require('fs');
 const path = require('path');
 
 exports.createProperty = async (req, res) => {
-    const transaction = await db.sequelize.transaction();
+    let transaction;
     try {
+        transaction = await db.sequelize.transaction();
         const userId = req.user.id;
         const {
             categoryId,
@@ -36,9 +37,76 @@ exports.createProperty = async (req, res) => {
             superArea,
             builtUpArea,
             carpetArea,
-            // Features
+            propertyType,
+            plotArea,
+            plotLength,
+            plotBreadth,
+            plotFacing,
+            roadWidth,
+            openSides,
+            washrooms,
+            frontage,
+            totalArea,
+            openArea,
+            // PG fields
+            sharingType,
+            totalBeds,
+            availableBeds,
+            gateClosingTime,
+            visitorPolicy,
+            noticePeriod,
+            // Additional fields
+            zoning,
+            approvedUse,
             features
+
         } = req.body;
+
+        // Clean up numeric fields - convert empty strings to null
+        const cleanNumericField = (value) => {
+            if (value === '' || value === undefined || value === null) return null;
+            const num = parseFloat(value);
+            return isNaN(num) ? null : num;
+        };
+
+        // Clean numeric fields from the request body
+        const cleanedData = {
+            ...req.body,
+            bedrooms: cleanNumericField(req.body.bedrooms),
+            bathrooms: cleanNumericField(req.body.bathrooms),
+            balconies: cleanNumericField(req.body.balconies),
+            totalFloors: cleanNumericField(req.body.totalFloors),
+            superArea: cleanNumericField(req.body.superArea),
+            builtUpArea: cleanNumericField(req.body.builtUpArea),
+            carpetArea: cleanNumericField(req.body.carpetArea),
+            price: cleanNumericField(req.body.price),
+            maintenanceCharge: cleanNumericField(req.body.maintenanceCharge),
+            plotArea: cleanNumericField(req.body.plotArea),
+            plotLength: cleanNumericField(req.body.plotLength),
+            plotBreadth: cleanNumericField(req.body.plotBreadth),
+            roadWidth: cleanNumericField(req.body.roadWidth),
+            washrooms: cleanNumericField(req.body.washrooms),
+            totalArea: cleanNumericField(req.body.totalArea),
+            openArea: cleanNumericField(req.body.openArea),
+            totalBeds: cleanNumericField(req.body.totalBeds),
+            availableBeds: cleanNumericField(req.body.availableBeds),
+            noticePeriod: cleanNumericField(req.body.noticePeriod),
+            frontage: cleanNumericField(req.body.frontage),
+            latitude: cleanNumericField(req.body.latitude),
+            longitude: cleanNumericField(req.body.longitude)
+        };
+
+        // Get propertyType from cleaned data
+        const actualPropertyType = cleanedData.propertyType || propertyType;
+
+        const validationErrors = validatePropertyFields(cleanedData, actualPropertyType);
+        if (validationErrors.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: validationErrors
+            });
+        }
 
         // Generate unique slug
         const baseSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -50,16 +118,16 @@ exports.createProperty = async (req, res) => {
             counter++;
         }
 
-        // Create property
-        const property = await Property.create({
+        // Create property using cleaned data
+        const propertyData = {
             userId,
-            categoryId,
-            subCategoryId,
-            propertyConfiguration, // Using propertyConfiguration from your model
+            categoryId: parseInt(categoryId),
+            subCategoryId: parseInt(subCategoryId),
+            propertyConfiguration,
             title,
             slug,
             description,
-            price,
+            price: cleanedData.price,
             priceUnit: priceUnit || 'total',
             negotiable: negotiable !== false,
             address,
@@ -68,18 +136,87 @@ exports.createProperty = async (req, res) => {
             city,
             state,
             pincode,
-            latitude,
-            longitude,
-            bedrooms: bedrooms || 0,
-            bathrooms: bathrooms || 0,
-            balconies: balconies || 0,
-            floorNumber,
-            totalFloors,
-            superArea,
-            builtUpArea,
-            carpetArea,
-            status: 'pending'
-        }, { transaction });
+            latitude: cleanedData.latitude,
+            longitude: cleanedData.longitude,
+            status: 'pending',
+            propertyType: actualPropertyType
+        };
+
+
+
+        switch(actualPropertyType) {
+            case 'land':
+            case 'commercial-land':
+                Object.assign(propertyData, {
+                    plotArea: cleanedData.plotArea,
+                    plotLength: cleanedData.plotLength,
+                    plotBreadth: cleanedData.plotBreadth,
+                    plotFacing,
+                    roadWidth: cleanedData.roadWidth,
+                    openSides,
+                    zoning,
+                    approvedUse
+                });
+                break;
+                
+            case 'commercial':
+                Object.assign(propertyData, {
+                    washrooms: cleanedData.washrooms,
+                    frontage: cleanedData.frontage,
+                    superArea: cleanedData.superArea,
+                    builtUpArea: cleanedData.builtUpArea,
+                    carpetArea: cleanedData.carpetArea,
+                    floorNumber,
+                    totalFloors: cleanedData.totalFloors
+                });
+                break;
+                
+            case 'farmhouse':
+                Object.assign(propertyData, {
+                    bedrooms: cleanedData.bedrooms,
+                    bathrooms: cleanedData.bathrooms,
+                    totalArea: cleanedData.totalArea,
+                    builtUpArea: cleanedData.builtUpArea,
+                    openArea: cleanedData.openArea
+                });
+                break;
+                
+            case 'pg':
+                Object.assign(propertyData, {
+                    sharingType,
+                    totalBeds: cleanedData.totalBeds,
+                    availableBeds: cleanedData.availableBeds,
+                    gateClosingTime,
+                    visitorPolicy,
+                    noticePeriod: cleanedData.noticePeriod
+                });
+                break;
+                
+            case 'studio':
+                Object.assign(propertyData, {
+                    bathrooms: cleanedData.bathrooms,
+                    floorNumber,
+                    totalFloors: cleanedData.totalFloors,
+                    superArea: cleanedData.superArea,
+                    carpetArea: cleanedData.carpetArea,
+                    bedrooms: 0 // Studios have 0 bedrooms
+                });
+                break;
+                
+            default: // residential
+                Object.assign(propertyData, {
+                    bedrooms: cleanedData.bedrooms,
+                    bathrooms: cleanedData.bathrooms,
+                    balconies: cleanedData.balconies,
+                    floorNumber,
+                    totalFloors: cleanedData.totalFloors,
+                    superArea: cleanedData.superArea,
+                    builtUpArea: cleanedData.builtUpArea,
+                    carpetArea: cleanedData.carpetArea
+                });
+        }
+        const property = await Property.create(propertyData, { transaction });
+
 
         // Create property features if provided
         if (features && Object.keys(features).length > 0) {
@@ -110,15 +247,72 @@ exports.createProperty = async (req, res) => {
         });
 
     } catch (error) {
-        await transaction.rollback();
+        if (transaction) {
+            try {
+                await transaction.rollback();
+            } catch (rollbackError) {
+                console.error('Error rolling back transaction:', rollbackError);
+            }
+        }
+        
+        console.error('=== PROPERTY CREATION ERROR ===');
         console.error('Error creating property:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error creating property',
-            error: error.message
+        console.error('Request body:', JSON.stringify(req.body, null, 2));
+        console.error('Property type:', req.body.propertyType);
+        console.error('User ID:', req.user?.id);
+        console.error('Error details:', {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
         });
+        console.error('=== END ERROR ===');
+        
+        // Ensure we always send a JSON response
+        if (!res.headersSent) {
+            res.status(500).json({
+                success: false,
+                message: 'Error creating property',
+                error: error.message
+            });
+        }
     }
 };
+
+
+function validatePropertyFields(data, propertyType) {
+    const errors = [];
+    
+    switch(propertyType) {
+        case 'land':
+        case 'commercial-land':
+            if (!data.plotArea) errors.push('Plot area is required');
+            break;
+            
+        case 'commercial':
+            if (!data.superArea) errors.push('Super area is required');
+            break;
+            
+        case 'farmhouse':
+            if (!data.totalArea) errors.push('Total area is required');
+            break;
+            
+        case 'pg':
+            if (!data.totalBeds) errors.push('Total beds is required');
+            if (!data.availableBeds) errors.push('Available beds is required');
+            if (!data.sharingType) errors.push('Sharing type is required');
+            break;
+            
+        case 'studio':
+            if (!data.superArea) errors.push('Super area is required');
+            break;
+            
+        default: // residential
+            if (!data.superArea) errors.push('Super area is required');
+            if (!data.bedrooms && data.bedrooms !== 0) errors.push('Bedrooms is required');
+    }
+    
+    return errors;
+}
 
 exports.uploadPropertyImages = async (req, res) => {
     try {
@@ -208,7 +402,7 @@ exports.getAllProperties = async (req, res) => {
 
         // Build where clause
         const where = {
-            status: 'active'
+            status: { [Op.in]: ['active', 'pending'] }
         };
 
         if (categoryId) where.categoryId = categoryId;
@@ -252,14 +446,13 @@ exports.getAllProperties = async (req, res) => {
                 {
                     model: PropertyImage,
                     as: 'images',
-                    where: { isPrimary: true },
                     required: false,
-                    attributes: ['imageUrl']
+                    attributes: ['imageUrl', 'isPrimary', 'order']
                 },
                 {
                     model: User,
                     as: 'owner',
-                    attributes: ['id', 'name', 'phone', 'profileCompleted']
+                    attributes: ['id', 'firstName', 'lastName', 'phoneNumber', 'profileCompleted']
                 },
                 {
                     model: PropertyFeature,
@@ -321,7 +514,7 @@ exports.getPropertyBySlug = async (req, res) => {
                 {
                     model: User,
                     as: 'owner',
-                    attributes: ['id', 'name', 'email', 'phone', 'profilePhoto', 'createdAt']
+                    attributes: ['id', 'firstName', 'lastName', 'email', 'phoneNumber', 'createdAt']
                 },
                 {
                     model: PropertyFeature,

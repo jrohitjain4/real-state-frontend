@@ -15,122 +15,14 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
-  // Google OAuth setup
   useEffect(() => {
     // Check if already logged in
     const token = localStorage.getItem('token');
     if (token) {
       navigate('/');
     }
-
-    const initializeGoogleSignIn = () => {
-      if (window.google && window.google.accounts) {
-        window.google.accounts.id.initialize({
-          client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID || '392443145374-gmn8kg445ulc035mru4c61nh4oodh7aa.apps.googleusercontent.com',
-          callback: handleGoogleLogin,
-          auto_select: false,
-          cancel_on_tap_outside: true
-        });
-
-        window.google.accounts.id.renderButton(
-          document.getElementById('googleSignInButton'),
-          {
-            theme: 'outline',
-            size: 'large',
-            width: '100%',
-            text: 'continue_with',
-            shape: 'rectangular',
-            logo_alignment: 'left'
-          }
-        );
-      }
-    };
-
-    // Load Google Script
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.onload = initializeGoogleSignIn;
-    document.head.appendChild(script);
-
-    return () => {
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
-      }
-    };
   }, [navigate]);
 
-  const handleGoogleLogin = async (response) => {
-    setLoading(true);
-    setError('');
-    
-    try {
-      // Decode JWT token from Google
-      const payload = JSON.parse(atob(response.credential.split('.')[1]));
-      
-      const googleUserData = {
-        name: payload.name,
-        email: payload.email,
-        password: 'google_oauth_user',
-        role: 'user',
-        googleId: payload.sub,
-        picture: payload.picture
-      };
-  
-      try {
-        // Try to login first
-        const loginResponse = await authAPI.login(googleUserData.email, googleUserData.password);
-        
-        if (loginResponse.success) {
-          localStorage.setItem('token', loginResponse.token);
-          localStorage.setItem('user', JSON.stringify(loginResponse.user));
-          if (rememberMe) {
-            localStorage.setItem('rememberMe', 'true');
-          }
-          navigate('/');
-        }
-      } catch (loginError) {
-        if (loginError.response?.data?.message?.includes('Invalid credentials')) {
-          setError('This email is already registered. Please use your password to login.');
-          return;
-        }
-        
-        if (loginError.response?.status === 400 || loginError.response?.status === 401) {
-          try {
-            const registerResponse = await authAPI.register(googleUserData);
-            
-            if (registerResponse.success) {
-              const loginResponse = await authAPI.login(googleUserData.email, googleUserData.password);
-              
-              if (loginResponse.success) {
-                localStorage.setItem('token', loginResponse.token);
-                localStorage.setItem('user', JSON.stringify(loginResponse.user));
-                if (rememberMe) {
-                  localStorage.setItem('rememberMe', 'true');
-                }
-                navigate('/');
-              }
-            }
-          } catch (registerError) {
-            if (registerError.response?.data?.message?.includes('already exists') ||
-                registerError.response?.data?.message?.includes('already registered')) {
-              setError('This email is already registered. Please use your password to login.');
-            } else {
-              setError('Failed to create account with Google. Please try again.');
-            }
-          }
-        } else {
-          setError('Google authentication failed. Please try again.');
-        }
-      }
-    } catch (err) {
-      console.error('Google login error:', err);
-      setError('Google login failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -210,15 +102,6 @@ const LoginPage = () => {
             <h1 className="LoginPage-title">Welcome Back</h1>
             <p className="LoginPage-subtitle">Let's login to grab amazing deals</p>
 
-            {/* Google Sign In Button */}
-            <div className="LoginPage-oauthSection">
-              <div id="googleSignInButton" className="LoginPage-googleButtonContainer"></div>
-            </div>
-
-            {/* Divider */}
-            <div className="LoginPage-divider">
-              <span>Or login with email</span>
-            </div>
 
             {/* Error Message */}
             {error && (

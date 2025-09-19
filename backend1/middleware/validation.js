@@ -2,12 +2,19 @@ const { body, validationResult } = require('express-validator');
 
 // Validation rules for user registration
 const validateRegistration = [
-    body('name')
+    body('firstName')
         .trim()
         .isLength({ min: 2, max: 50 })
-        .withMessage('Name must be between 2 and 50 characters')
+        .withMessage('First name must be between 2 and 50 characters')
         .matches(/^[a-zA-Z\s\-']+$/)
-        .withMessage('Name can only contain letters, spaces, hyphens, and apostrophes'),
+        .withMessage('First name can only contain letters, spaces, hyphens, and apostrophes'),
+    
+    body('lastName')
+        .trim()
+        .isLength({ min: 2, max: 50 })
+        .withMessage('Last name must be between 2 and 50 characters')
+        .matches(/^[a-zA-Z\s\-']+$/)
+        .withMessage('Last name can only contain letters, spaces, hyphens, and apostrophes'),
     
     body('email')
         .isEmail()
@@ -58,13 +65,21 @@ const validatePasswordChange = [
 
 // Validation rules for profile update
 const validateProfileUpdate = [
-    body('name')
+    body('firstName')
         .optional()
         .trim()
         .isLength({ min: 2, max: 50 })
-        .withMessage('Name must be between 2 and 50 characters')
+        .withMessage('First name must be between 2 and 50 characters')
         .matches(/^[a-zA-Z\s\-']+$/)
-        .withMessage('Name can only contain letters, spaces, hyphens, and apostrophes'),
+        .withMessage('First name can only contain letters, spaces, hyphens, and apostrophes'),
+    
+    body('lastName')
+        .optional()
+        .trim()
+        .isLength({ min: 2, max: 50 })
+        .withMessage('Last name must be between 2 and 50 characters')
+        .matches(/^[a-zA-Z\s\-']+$/)
+        .withMessage('Last name can only contain letters, spaces, hyphens, and apostrophes'),
     
     body('email')
         .optional()
@@ -74,7 +89,7 @@ const validateProfileUpdate = [
         .isLength({ max: 100 })
         .withMessage('Email must be less than 100 characters'),
     
-    body('phone')
+    body('phoneNumber')
         .optional()
         .trim()
         .isLength({ max: 20 })
@@ -85,13 +100,21 @@ const validateProfileUpdate = [
 
 // Validation rules for user update
 const validateUserUpdate = [
-    body('name')
+    body('firstName')
         .optional()
         .trim()
         .isLength({ min: 2, max: 50 })
-        .withMessage('Name must be between 2 and 50 characters')
+        .withMessage('First name must be between 2 and 50 characters')
         .matches(/^[a-zA-Z\s\-']+$/)
-        .withMessage('Name can only contain letters, spaces, hyphens, and apostrophes'),
+        .withMessage('First name can only contain letters, spaces, hyphens, and apostrophes'),
+    
+    body('lastName')
+        .optional()
+        .trim()
+        .isLength({ min: 2, max: 50 })
+        .withMessage('Last name must be between 2 and 50 characters')
+        .matches(/^[a-zA-Z\s\-']+$/)
+        .withMessage('Last name can only contain letters, spaces, hyphens, and apostrophes'),
     
     body('email')
         .optional()

@@ -14,7 +14,7 @@ exports.getAllCategories = async (req, res) => {
                 as: 'subcategories',
                 where: { isActive: true },
                 required: false,
-                attributes: ['id', 'name', 'slug', 'description', 'icon', 'image', 'displayOrder']
+                attributes: ['id', 'name', 'slug', 'description', 'icon', 'image', 'displayOrder', 'propertyType']
             }],
             order: [
                 ['displayOrder', 'ASC'],
@@ -204,7 +204,7 @@ exports.getSubcategoriesByCategory = async (req, res) => {
                 categoryId,
                 isActive: true 
             },
-            attributes: ['id', 'name', 'slug', 'description', 'icon', 'minBedrooms', 'maxBedrooms'],
+            attributes: ['id', 'name', 'slug', 'description', 'icon', 'minBedrooms', 'maxBedrooms', 'propertyType'],
             order: [['displayOrder', 'ASC'], ['name', 'ASC']]
         });
 

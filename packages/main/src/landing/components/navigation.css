@@ -1,6 +1,13 @@
 #menu {
-  padding: 12px;
+  padding: 8px 12px;
   transition: all 0.8s;
+  z-index: 9999 !important;
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  min-height: 60px;
 }
 #menu.navbar-default {
   background-color: #fff;

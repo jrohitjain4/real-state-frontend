@@ -17,9 +17,6 @@ const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
-
-  // Google OAuth setup
   useEffect(() => {
     // Check if already logged in
     const token = localStorage.getItem('token');
@@ -27,97 +24,8 @@ const RegisterPage = () => {
       navigate('/');
     }
 
-    const initializeGoogleSignIn = () => {
-      if (window.google && window.google.accounts) {
-        window.google.accounts.id.initialize({
-          client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID || '392443145374-gmn8kg445ulc035mru4c61nh4oodh7aa.apps.googleusercontent.com',
-          callback: handleGoogleRegister,
-          auto_select: false,
-          cancel_on_tap_outside: true
-        });
-
-        window.google.accounts.id.renderButton(
-          document.getElementById('googleRegisterButton'),
-          {
-            theme: 'outline',
-            size: 'large',
-            width: '100%',
-            text: 'signup_with',
-            shape: 'rectangular',
-            logo_alignment: 'left'
-          }
-        );
-      }
-    };
-
-    // Load Google Script
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.onload = initializeGoogleSignIn;
-    document.head.appendChild(script);
-
-    return () => {
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
-      }
-    };
   }, [navigate]);
 
-  const handleGoogleRegister = async (response) => {
-    setGoogleLoading(true);
-    setErrors({});
-    
-    try {
-      // Decode JWT token from Google
-      const payload = JSON.parse(atob(response.credential.split('.')[1]));
-      
-      const googleUserData = {
-        name: payload.name,
-        email: payload.email,
-        password: 'google_oauth_user',
-        role: formData.role || 'user', // Use selected role or default to 'user'
-        googleId: payload.sub,
-        picture: payload.picture
-      };
-
-      try {
-        // First check if user already exists by trying to login
-        const loginResponse = await authAPI.login(googleUserData.email, googleUserData.password);
-        
-        if (loginResponse.success) {
-          // User already exists, just log them in
-          localStorage.setItem('token', loginResponse.token);
-          localStorage.setItem('user', JSON.stringify(loginResponse.user));
-          navigate('/');
-        }
-      } catch (loginError) {
-        // User doesn't exist, register them
-        try {
-          const registerResponse = await authAPI.register(googleUserData);
-          
-          if (registerResponse.success) {
-            // Auto login after registration
-            const loginResponse = await authAPI.login(googleUserData.email, googleUserData.password);
-            
-            if (loginResponse.success) {
-              localStorage.setItem('token', loginResponse.token);
-              localStorage.setItem('user', JSON.stringify(loginResponse.user));
-              navigate('/');
-            }
-          }
-        } catch (registerError) {
-          setErrors({ general: 'Failed to create account with Google. Please try again.' });
-        }
-      }
-    } catch (err) {
-      console.error('Google register error:', err);
-      setErrors({ general: 'Google registration failed. Please try again.' });
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
 
   const validateForm = () => {
     const newErrors = {};
@@ -187,7 +95,8 @@ const RegisterPage = () => {
     try {
       // Prepare user data
       const userData = {
-        name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
         role: formData.role
@@ -245,15 +154,6 @@ const RegisterPage = () => {
               <p className="register-subtitle">Join us to get started with amazing deals</p>
             </div>
 
-            {/* Google Sign Up */}
-            <div className="oauth-section">
-              <div id="googleRegisterButton" className="google-button-container"></div>
-            </div>
-
-            {/* Divider */}
-            <div className="divider">
-              <span>Or register with email</span>
-            </div>
 
             {/* Error Messages */}
             {errors.general && (
@@ -278,7 +178,7 @@ const RegisterPage = () => {
                     onChange={handleChange}
                     className={`form-input ${errors.firstName ? 'error' : ''}`}
                     placeholder="John"
-                    disabled={loading || googleLoading}
+                    disabled={loading}
                   />
                   {errors.firstName && (
                     <span className="field-error">{errors.firstName}</span>
@@ -295,7 +195,7 @@ const RegisterPage = () => {
                     onChange={handleChange}
                     className={`form-input ${errors.lastName ? 'error' : ''}`}
                     placeholder="Doe"
-                    disabled={loading || googleLoading}
+                    disabled={loading}
                   />
                   {errors.lastName && (
                     <span className="field-error">{errors.lastName}</span>
@@ -313,7 +213,7 @@ const RegisterPage = () => {
                   onChange={handleChange}
                   className={`form-input ${errors.email ? 'error' : ''}`}
                   placeholder="you@example.com"
-                  disabled={loading || googleLoading}
+                  disabled={loading}
                 />
                 {errors.email && (
                   <span className="field-error">{errors.email}</span>
@@ -328,7 +228,7 @@ const RegisterPage = () => {
                   value={formData.role}
                   onChange={handleChange}
                   className="form-select"
-                  disabled={loading || googleLoading}
+                  disabled={loading}
                 >
                   <option value="user">User (Buy/Rent Properties)</option>
                   <option value="agent">Agent (Sell/List Properties)</option>
@@ -346,13 +246,13 @@ const RegisterPage = () => {
                       onChange={handleChange}
                       className={`form-input ${errors.password ? 'error' : ''}`}
                       placeholder="••••••••"
-                      disabled={loading || googleLoading}
+                      disabled={loading}
                     />
                     <button 
                       type="button" 
                       className="password-toggle-btn"
                       onClick={() => setShowPassword(!showPassword)}
-                      disabled={loading || googleLoading}
+                      disabled={loading}
                     >
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         {showPassword ? (
@@ -385,13 +285,13 @@ const RegisterPage = () => {
                       onChange={handleChange}
                       className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
                       placeholder="••••••••"
-                      disabled={loading || googleLoading}
+                      disabled={loading}
                     />
                     <button 
                       type="button" 
                       className="password-toggle-btn"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      disabled={loading || googleLoading}
+                      disabled={loading}
                     >
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         {showConfirmPassword ? (
@@ -418,7 +318,7 @@ const RegisterPage = () => {
               <button 
                 type="submit" 
                 className="submit-button"
-                disabled={loading || googleLoading}
+                      disabled={loading}
               >
                 {loading ? (
                   <>

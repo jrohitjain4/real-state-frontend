@@ -1,6 +1,7 @@
 // src/pages/AddProperty.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { propertyFormConfig, fieldDefinitions } from '../config/propertyFormConfig';
 import './AddProperty.css';
 
 const AddProperty = () => {
@@ -9,16 +10,18 @@ const AddProperty = () => {
     const [categories, setCategories] = useState([]);
     const [subcategories, setSubcategories] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [selectedPropertyType, setSelectedPropertyType] = useState('residential');
     
+    // Dynamic property data state based on property type
     const [propertyData, setPropertyData] = useState({
         // Basic Info
         categoryId: '',
         subCategoryId: '',
-        propertyConfiguration: '', // Changed from configId
+        propertyConfiguration: '',
         title: '',
         description: '',
         
-        // Location
+        // Location (common for all)
         address: '',
         locality: '',
         landmark: '',
@@ -28,19 +31,42 @@ const AddProperty = () => {
         latitude: '',
         longitude: '',
         
-        // Property Details
-        bedrooms: 0,
+        // Dynamic fields based on property type
+        // Residential fields
+        bedrooms: 1,
         bathrooms: 1,
-        balconies: 1,
+        balconies: 0,
         floorNumber: '',
         totalFloors: '',
-        
-        // Area
         superArea: '',
         builtUpArea: '',
         carpetArea: '',
         
-        // Pricing
+        // Land fields
+        plotArea: '',
+        plotLength: '',
+        plotBreadth: '',
+        plotFacing: 'North',
+        roadWidth: '',
+        openSides: '1',
+        
+        // Commercial fields
+        washrooms: 1,
+        frontage: '',
+        
+        // Farmhouse fields
+        totalArea: '',
+        openArea: '',
+        
+        // PG fields
+        sharingType: 'Single',
+        totalBeds: '',
+        availableBeds: '',
+        gateClosingTime: '',
+        visitorPolicy: 'Limited Hours',
+        noticePeriod: 30,
+        
+        // Pricing (common but varies)
         price: '',
         priceUnit: 'total',
         negotiable: true,
@@ -48,41 +74,62 @@ const AddProperty = () => {
         rentAmount: '',
         securityDeposit: '',
         
-        // Other Details
+        // Other Details (varies by type)
         furnishingStatus: 'unfurnished',
         possessionStatus: 'ready-to-move',
         availableFrom: new Date().toISOString().split('T')[0],
         ageOfProperty: 'new',
         ownershipType: 'owner',
         
-        // Features
-        features: {
-            parking: 'none',
-            parkingCount: 0,
-            powerBackup: 'none',
-            waterSupply: 'corporation',
-            lift: false,
-            gym: false,
-            swimmingPool: false,
-            clubHouse: false,
-            security: false,
-            playArea: false,
-            cctv: false,
-            gasConnection: false,
-            vastu: false,
-            petFriendly: false,
-            intercom: false,
-            visitorParking: false
-        }
+        // Features (dynamic based on property type)
+        features: {}
     });
 
     const [images, setImages] = useState([]);
     const [errors, setErrors] = useState({});
 
     useEffect(() => {
+        // Check if user is authenticated
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Please login to add a property');
+            navigate('/login');
+            return;
+        }
+        
         fetchCategories();
         checkProfileCompletion();
-    }, []);
+    }, [navigate]);
+
+    // Update property type when subcategory changes
+    useEffect(() => {
+        if (propertyData.subCategoryId && subcategories.length > 0) {
+            const selectedSubcat = subcategories.find(sub => sub.id === parseInt(propertyData.subCategoryId));
+            console.log('Selected subcategory:', selectedSubcat); // Debug log
+            if (selectedSubcat && selectedSubcat.propertyType) {
+                console.log('Setting property type to:', selectedSubcat.propertyType); // Debug log
+                setSelectedPropertyType(selectedSubcat.propertyType);
+                // Reset features based on new property type
+                resetFeaturesForPropertyType(selectedSubcat.propertyType);
+            }
+        }
+    }, [propertyData.subCategoryId, subcategories]);
+
+    const resetFeaturesForPropertyType = (propertyType) => {
+        const config = propertyFormConfig[propertyType];
+        const newFeatures = {};
+        
+        if (config && config.amenities) {
+            config.amenities.forEach(amenity => {
+                newFeatures[amenity] = false;
+            });
+        }
+        
+        setPropertyData(prev => ({
+            ...prev,
+            features: newFeatures
+        }));
+    };
 
     const checkProfileCompletion = async () => {
         try {
@@ -104,128 +151,331 @@ const AddProperty = () => {
 
     const fetchCategories = async () => {
         try {
-            console.log('Fetching categories from API...');
             const response = await fetch('http://localhost:5000/api/categories');
-            console.log('Response status:', response.status);
             const data = await response.json();
-            console.log('API response:', data);
             if (data.success) {
                 setCategories(data.data);
-                console.log('Categories set:', data.data);
-            } else {
-                console.error('API returned success: false', data.message);
             }
         } catch (error) {
             console.error('Error fetching categories:', error);
         }
     };
-// Update the handleCategoryChange function
-// Update your handleCategoryChange function in AddProperty.js
-const handleCategoryChange = async (categoryId) => {
-    console.log('Category changed to:', categoryId);
-    
-    setPropertyData({ 
-        ...propertyData, 
-        categoryId, 
-        subCategoryId: '', 
-        propertyConfiguration: '' 
-    });
-    
-    // Clear existing subcategories
-    setSubcategories([]);
-    
-    if (categoryId) {
-        try {
-            // Fetch subcategories for the selected category
-            console.log(`Fetching subcategories for category ${categoryId}`);
-            const response = await fetch(`http://localhost:5000/api/categories/${categoryId}/subcategories`);
-            const data = await response.json();
-            
-            console.log('Subcategories response:', data);
-            
-            if (data.success && data.data) {
-                setSubcategories(data.data);
-                console.log('Subcategories set:', data.data);
-            } else {
-                console.error('No subcategories found');
-                setSubcategories([]);
-            }
-        } catch (error) {
-            console.error('Error fetching subcategories:', error);
-            setSubcategories([]);
-        }
-    }
-};
 
-const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    
-    if (name.includes('.')) {
-        const [parent, child] = name.split('.');
-        setPropertyData({
-            ...propertyData,
-            [parent]: {
-                ...propertyData[parent],
-                [child]: type === 'checkbox' ? checked : value
+    const handleCategoryChange = async (categoryId) => {
+        setPropertyData({ 
+            ...propertyData, 
+            categoryId, 
+            subCategoryId: '', 
+            propertyConfiguration: '' 
+        });
+        
+        setSubcategories([]);
+        
+        if (categoryId) {
+            try {
+                const response = await fetch(`http://localhost:5000/api/categories/${categoryId}/subcategories`);
+                const data = await response.json();
+                
+                if (data.success && data.data) {
+                    setSubcategories(data.data);
+                }
+            } catch (error) {
+                console.error('Error fetching subcategories:', error);
             }
-        });
-    } else {
-        // Convert numeric fields
-        const numericFields = ['bathrooms', 'balconies', 'totalFloors', 'superArea', 'builtUpArea', 'carpetArea', 'price', 'maintenanceCharge'];
-        let finalValue = type === 'checkbox' ? checked : value;
-        
-        if (numericFields.includes(name) && value !== '') {
-            finalValue = parseInt(value) || 0;
         }
-        
-        setPropertyData({
-            ...propertyData,
-            [name]: finalValue
-        });
-    }
-};
+    };
 
-    // Update property configuration based on bedrooms selection
+    const renderDynamicFields = () => {
+        const config = propertyFormConfig[selectedPropertyType];
+        if (!config) return null;
+
+        return (
+            <>
+                {/* Property Details Section */}
+                {config.propertyDetails.length > 0 && (
+                    <div className="form-section">
+                        <h4>Property Details</h4>
+                        <div className="form-row">
+                            {config.propertyDetails.map(fieldName => {
+                                const fieldDef = fieldDefinitions[fieldName];
+                                if (!fieldDef) return renderStandardField(fieldName);
+                                
+                                return renderField(fieldName, fieldDef);
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                {/* Area Details Section */}
+                {config.areaDetails.length > 0 && (
+                    <div className="form-section">
+                        <h4>Area Details</h4>
+                        <div className="form-row">
+                            {config.areaDetails.map(fieldName => {
+                                const fieldDef = fieldDefinitions[fieldName];
+                                if (!fieldDef) return renderStandardField(fieldName);
+                                
+                                return renderField(fieldName, fieldDef);
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                {/* Additional Info Section */}
+                {config.additionalInfo.length > 0 && (
+                    <div className="form-section">
+                        <h4>Additional Information</h4>
+                        <div className="form-row">
+                            {config.additionalInfo.map(fieldName => {
+                                const fieldDef = fieldDefinitions[fieldName];
+                                if (!fieldDef) return renderStandardField(fieldName);
+                                
+                                return renderField(fieldName, fieldDef);
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                {/* Amenities Section */}
+                {config.amenities.length > 0 && (
+                    <div className="form-section">
+                        <h4>Amenities</h4>
+                        <div className="amenities-grid">
+                            {config.amenities.map(amenity => {
+                                const fieldDef = fieldDefinitions[amenity];
+                                
+                                if (fieldDef && fieldDef.type === 'select') {
+                                    return (
+                                        <div key={amenity} className="form-group">
+                                            <label>{fieldDef.label}</label>
+                                            <select
+                                                name={`features.${amenity}`}
+                                                value={propertyData.features[amenity] || ''}
+                                                onChange={handleInputChange}
+                                            >
+                                                {fieldDef.options.map(option => (
+                                                    <option key={option} value={option}>{option}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    );
+                                }
+                                
+                                return (
+                                    <label key={amenity} className="checkbox-label">
+                                        <input
+                                            type="checkbox"
+                                            name={`features.${amenity}`}
+                                            checked={propertyData.features[amenity] || false}
+                                            onChange={handleInputChange}
+                                        />
+                                        <span>{fieldDef?.label || formatFieldName(amenity)}</span>
+                                    </label>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+            </>
+        );
+    };
+
+    const renderField = (fieldName, fieldDef) => {
+        const value = propertyData[fieldName] || '';
+        
+        switch (fieldDef.type) {
+            case 'select':
+                return (
+                    <div key={fieldName} className="form-group">
+                        <label>{fieldDef.label} {fieldDef.required && '*'}</label>
+                        <select
+                            name={fieldName}
+                            value={value}
+                            onChange={handleInputChange}
+                            className={errors[fieldName] ? 'error' : ''}
+                        >
+                            <option value="">Select {fieldDef.label}</option>
+                            {fieldDef.options.map(option => (
+                                <option key={option} value={option}>{option}</option>
+                            ))}
+                        </select>
+                        {errors[fieldName] && <span className="error-message">{errors[fieldName]}</span>}
+                    </div>
+                );
+                
+            case 'checkbox':
+                return (
+                    <label key={fieldName} className="checkbox-label">
+                        <input
+                            type="checkbox"
+                            name={fieldName}
+                            checked={value || false}
+                            onChange={handleInputChange}
+                        />
+                        <span>{fieldDef.label}</span>
+                    </label>
+                );
+                
+            case 'time':
+                return (
+                    <div key={fieldName} className="form-group">
+                        <label>{fieldDef.label} {fieldDef.required && '*'}</label>
+                        <input
+                            type="time"
+                            name={fieldName}
+                            value={value}
+                            onChange={handleInputChange}
+                            className={errors[fieldName] ? 'error' : ''}
+                        />
+                        {errors[fieldName] && <span className="error-message">{errors[fieldName]}</span>}
+                    </div>
+                );
+                
+            default:
+                return (
+                    <div key={fieldName} className="form-group">
+                        <label>{fieldDef.label} {fieldDef.required && '*'}</label>
+                        <input
+                            type={fieldDef.type || 'text'}
+                            name={fieldName}
+                            value={value}
+                            onChange={handleInputChange}
+                            placeholder={fieldDef.placeholder}
+                            step={fieldDef.step}
+                            className={errors[fieldName] ? 'error' : ''}
+                        />
+                        {errors[fieldName] && <span className="error-message">{errors[fieldName]}</span>}
+                    </div>
+                );
+        }
+    };
+
+    const renderStandardField = (fieldName) => {
+        // Render standard fields that aren't in fieldDefinitions
+        const standardFields = {
+            bedrooms: {
+                label: 'Bedrooms',
+                type: 'select',
+                options: ['0', '1', '2', '3', '4', '5+']
+            },
+            bathrooms: {
+                label: 'Bathrooms',
+                type: 'select',
+                options: ['1', '2', '3', '4+']
+            },
+            balconies: {
+                label: 'Balconies',
+                type: 'select',
+                options: ['0', '1', '2', '3+']
+            },
+            floorNumber: {
+                label: 'Floor Number',
+                type: 'text',
+                placeholder: 'e.g., 3 or Ground'
+            },
+            totalFloors: {
+                label: 'Total Floors',
+                type: 'number',
+                placeholder: 'e.g., 12'
+            },
+            superArea: {
+                label: 'Super Built-up Area (sq ft)',
+                type: 'number',
+                placeholder: 'e.g., 1200',
+                required: true
+            },
+            builtUpArea: {
+                label: 'Built-up Area (sq ft)',
+                type: 'number',
+                placeholder: 'e.g., 1100'
+            },
+            carpetArea: {
+                label: 'Carpet Area (sq ft)',
+                type: 'number',
+                placeholder: 'e.g., 1000'
+            }
+        };
+
+        const field = standardFields[fieldName];
+        if (!field) return null;
+
+        return renderField(fieldName, field);
+    };
+
+    const formatFieldName = (name) => {
+        return name.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        
+        if (name.includes('.')) {
+            const [parent, child] = name.split('.');
+            setPropertyData({
+                ...propertyData,
+                [parent]: {
+                    ...propertyData[parent],
+                    [child]: type === 'checkbox' ? checked : value
+                }
+            });
+        } else {
+            const numericFields = ['bathrooms', 'balconies', 'totalFloors', 'superArea', 'builtUpArea', 
+                                  'carpetArea', 'price', 'maintenanceCharge', 'plotArea', 'plotLength', 
+                                  'plotBreadth', 'roadWidth', 'washrooms', 'totalArea', 'openArea', 
+                                  'totalBeds', 'availableBeds', 'noticePeriod', 'frontage'];
+            let finalValue = type === 'checkbox' ? checked : value;
+            
+            if (numericFields.includes(name) && value !== '') {
+                finalValue = parseFloat(value) || 0;
+            }
+            
+            // Handle subcategory change to update property type immediately
+            if (name === 'subCategoryId' && value) {
+                const selectedSubcat = subcategories.find(sub => sub.id === parseInt(value));
+                if (selectedSubcat && selectedSubcat.propertyType) {
+                    console.log('Immediately setting property type to:', selectedSubcat.propertyType);
+                    setSelectedPropertyType(selectedSubcat.propertyType);
+                    resetFeaturesForPropertyType(selectedSubcat.propertyType);
+                }
+            }
+            
+            setPropertyData({
+                ...propertyData,
+                [name]: finalValue
+            });
+        }
+    };
+
     const handleBedroomsChange = (e) => {
         const bedrooms = e.target.value;
         let configuration = '';
         
-        if (bedrooms === '0') {
+        if (selectedPropertyType === 'studio') {
             configuration = 'Studio';
-        } else if (bedrooms === '5') {
-            configuration = '5+ BHK';
+        } else if (selectedPropertyType === 'land' || selectedPropertyType === 'commercial-land') {
+            configuration = '';
+        } else if (selectedPropertyType === 'pg') {
+            configuration = propertyData.sharingType + ' Sharing';
         } else {
-            configuration = `${bedrooms} BHK`;
+            if (bedrooms === '0') {
+                configuration = 'Studio';
+            } else if (bedrooms === '5') {
+                configuration = '5+ BHK';
+            } else {
+                configuration = `${bedrooms} BHK`;
+            }
         }
         
         setPropertyData({
             ...propertyData,
-            bedrooms: parseInt(bedrooms),
+            bedrooms: parseInt(bedrooms) || 0,
             propertyConfiguration: configuration
         });
     };
 
-    const handleImageChange = (e) => {
-        const files = Array.from(e.target.files);
-        
-        // Validate file size and type
-        const validFiles = files.filter(file => {
-            if (file.size > 5 * 1024 * 1024) {
-                alert(`${file.name} is too large. Maximum size is 5MB`);
-                return false;
-            }
-            return true;
-        });
-
-        setImages([...images, ...validFiles]);
-    };
-
-    const removeImage = (index) => {
-        setImages(images.filter((_, i) => i !== index));
-    };
-
     const validateStep = () => {
         const newErrors = {};
+        const config = propertyFormConfig[selectedPropertyType];
         
         switch(step) {
             case 1:
@@ -248,9 +498,24 @@ const handleInputChange = (e) => {
                 break;
                 
             case 3:
-                if (!propertyData.superArea || propertyData.superArea <= 0) {
-                    newErrors.superArea = 'Super area is required';
+                // Validate based on property type
+                if (selectedPropertyType === 'land' || selectedPropertyType === 'commercial-land') {
+                    if (!propertyData.plotArea || propertyData.plotArea <= 0) {
+                        newErrors.plotArea = 'Plot area is required';
+                    }
+                } else if (selectedPropertyType === 'farmhouse') {
+                    if (!propertyData.totalArea || propertyData.totalArea <= 0) {
+                        newErrors.totalArea = 'Total area is required';
+                    }
+                } else if (selectedPropertyType === 'pg') {
+                    if (!propertyData.totalBeds) newErrors.totalBeds = 'Total beds is required';
+                    if (!propertyData.availableBeds) newErrors.availableBeds = 'Available beds is required';
+                } else {
+                    if (!propertyData.superArea || propertyData.superArea <= 0) {
+                        newErrors.superArea = 'Super area is required';
+                    }
                 }
+                
                 if (!propertyData.price || propertyData.price <= 0) {
                     newErrors.price = 'Price is required';
                 }
@@ -278,29 +543,58 @@ const handleInputChange = (e) => {
         
         setLoading(true);
         
+        // Clean up the data before sending
+        const cleanPropertyData = { ...propertyData };
+        
+        // Convert empty strings to null for numeric fields
+        const numericFields = [
+            'bedrooms', 'bathrooms', 'balconies', 'totalFloors', 'superArea', 'builtUpArea', 
+            'carpetArea', 'price', 'maintenanceCharge', 'plotArea', 'plotLength', 
+            'plotBreadth', 'roadWidth', 'washrooms', 'totalArea', 'openArea', 
+            'totalBeds', 'availableBeds', 'noticePeriod', 'frontage', 'latitude', 'longitude'
+        ];
+        
+        numericFields.forEach(field => {
+            if (cleanPropertyData[field] === '' || cleanPropertyData[field] === undefined) {
+                cleanPropertyData[field] = null;
+            }
+        });
+        
+        // Remove irrelevant fields based on property type
+        const propertyPayload = {
+            ...cleanPropertyData,
+            propertyType: selectedPropertyType
+        };
+        
+        // Clean up fields based on property type
+        if (selectedPropertyType === 'land' || selectedPropertyType === 'commercial-land') {
+            // For land, remove residential-specific fields
+            delete propertyPayload.bedrooms;
+            delete propertyPayload.bathrooms;
+            delete propertyPayload.balconies;
+            delete propertyPayload.superArea;
+            delete propertyPayload.builtUpArea;
+            delete propertyPayload.carpetArea;
+            delete propertyPayload.floorNumber;
+            delete propertyPayload.totalFloors;
+            delete propertyPayload.furnishingStatus;
+            delete propertyPayload.maintenanceCharge;
+        } else if (selectedPropertyType === 'pg') {
+            // For PG, remove residential bedroom/bathroom fields
+            delete propertyPayload.bedrooms;
+            delete propertyPayload.bathrooms;
+            delete propertyPayload.balconies;
+            delete propertyPayload.superArea;
+            delete propertyPayload.builtUpArea;
+            delete propertyPayload.carpetArea;
+        } else if (selectedPropertyType === 'commercial') {
+            // For commercial, remove residential-specific fields
+            delete propertyPayload.bedrooms;
+            delete propertyPayload.bathrooms;
+            delete propertyPayload.balconies;
+        }
+        
         try {
-            // Clean up the data before sending
-            const propertyPayload = {
-                ...propertyData,
-                // Ensure numeric values
-                bedrooms: parseInt(propertyData.bedrooms) || 1,
-                bathrooms: parseInt(propertyData.bathrooms) || 1,
-                balconies: parseInt(propertyData.balconies) || 0,
-                totalFloors: propertyData.totalFloors ? parseInt(propertyData.totalFloors) : null,
-                superArea: parseInt(propertyData.superArea) || 0,
-                builtUpArea: propertyData.builtUpArea ? parseInt(propertyData.builtUpArea) : null,
-                carpetArea: propertyData.carpetArea ? parseInt(propertyData.carpetArea) : null,
-                price: parseFloat(propertyData.price) || 0,
-                maintenanceCharge: propertyData.maintenanceCharge ? parseFloat(propertyData.maintenanceCharge) : null,
-                // Remove empty strings for optional fields
-                latitude: propertyData.latitude || null,
-                longitude: propertyData.longitude || null,
-                floorNumber: propertyData.floorNumber || null,
-                rentAmount: propertyData.rentAmount ? parseFloat(propertyData.rentAmount) : null,
-                securityDeposit: propertyData.securityDeposit ? parseFloat(propertyData.securityDeposit) : null
-            };
-            
-            console.log('Sending property data:', propertyPayload);
             
             // First create property
             const response = await fetch('http://localhost:5000/api/properties', {
@@ -313,30 +607,87 @@ const handleInputChange = (e) => {
             });
             
             const data = await response.json();
-            console.log('Server response:', data);
             
-            if (!data.success) {
-                throw new Error(data.message || data.error);
+            // Check for authentication error
+            if (response.status === 401) {
+                alert('You need to login to create properties. Redirecting to login page...');
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                navigate('/login');
+                return;
             }
             
-            // Upload images code remains the same...
+            if (!response.ok || !data.success) {
+                console.error('Server response:', data);
+                throw new Error(data.message || data.error || `Server error: ${response.status}`);
+            }
+            
+            // Upload images if any
+            if (images.length > 0) {
+                const formData = new FormData();
+                images.forEach(image => {
+                    formData.append('images', image);
+                });
+                
+                await fetch(`http://localhost:5000/api/properties/${data.data.id}/images`, {
+                    method: 'POST',
+                    headers: {
+                        'x-auth-token': localStorage.getItem('token')
+                    },
+                    body: formData
+                });
+            }
+            
+            alert('Property posted successfully!');
+            navigate('/my-properties');
             
         } catch (error) {
             console.error('Error posting property:', error);
-            alert(error.message || 'Failed to post property');
+            console.error('Property payload that failed:', propertyPayload);
+            
+            // Provide more specific error messages
+            let errorMessage = 'Failed to post property';
+            if (error.message.includes('401')) {
+                errorMessage = 'Authentication failed. Please login again.';
+            } else if (error.message.includes('400')) {
+                errorMessage = 'Invalid property data. Please check all required fields.';
+            } else if (error.message.includes('500')) {
+                errorMessage = 'Server error. Please try again later.';
+            } else {
+                errorMessage = error.message || 'Failed to post property';
+            }
+            
+            alert(errorMessage);
         } finally {
             setLoading(false);
         }
     };
 
+    const handleImageChange = (e) => {
+        const files = Array.from(e.target.files);
+        
+        const validFiles = files.filter(file => {
+            if (file.size > 5 * 1024 * 1024) {
+                alert(`${file.name} is too large. Maximum size is 5MB`);
+                return false;
+            }
+            return true;
+        });
+
+        setImages([...images, ...validFiles]);
+    };
+
+    const removeImage = (index) => {
+        setImages(images.filter((_, i) => i !== index));
+    };
+
     return (
-        <div className="add-property-page">
+        <div className="add-property-page" style={{ paddingTop: '120px' }}>
             <div className="add-property-container">
                 <div className="property-header">
                     <h2>Post Your Property</h2>
                     <p>Fill in the details to list your property</p>
                     
-                    {/* Progress Steps */}
                     <div className="progress-steps">
                         <div className={`step ${step >= 1 ? 'active' : ''}`}>
                             <div className="step-number">1</div>
@@ -367,42 +718,38 @@ const handleInputChange = (e) => {
                             <h3>Basic Information</h3>
                             
                             <div className="form-row">
-                            <div className="form-group">
-    <label>Property For *</label>
-    <select
-        name="categoryId"
-        value={propertyData.categoryId}
-        onChange={(e) => handleCategoryChange(e.target.value)}
-        className={errors.categoryId ? 'error' : ''}
-    >
-        <option value="">Select Category</option>
-        {categories.map(cat => (
-            <option key={cat.id} value={cat.id}>{cat.name}</option>
-        ))}
-    </select>
-    {errors.categoryId && <span className="error-message">{errors.categoryId}</span>}
-</div>
+                                <div className="form-group">
+                                    <label>Property For *</label>
+                                    <select
+                                        name="categoryId"
+                                        value={propertyData.categoryId}
+                                        onChange={(e) => handleCategoryChange(e.target.value)}
+                                        className={errors.categoryId ? 'error' : ''}
+                                    >
+                                        <option value="">Select Category</option>
+                                        {categories.map(cat => (
+                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                        ))}
+                                    </select>
+                                    {errors.categoryId && <span className="error-message">{errors.categoryId}</span>}
+                                </div>
                                 
                                 <div className="form-group">
-    <label>Property Type *</label>
-    <select
-        name="subCategoryId"
-        value={propertyData.subCategoryId}
-        onChange={handleInputChange}
-        className={errors.subCategoryId ? 'error' : ''}
-        disabled={!propertyData.categoryId}
-    >
-        <option value="">Select Type</option>
-        {subcategories && subcategories.length > 0 ? (
-            subcategories.map(sub => (
-                <option key={sub.id} value={sub.id}>{sub.name}</option>
-            ))
-        ) : (
-            propertyData.categoryId && <option disabled>No types available</option>
-        )}
-    </select>
-    {errors.subCategoryId && <span className="error-message">{errors.subCategoryId}</span>}
-</div>
+                                    <label>Property Type *</label>
+                                    <select
+                                        name="subCategoryId"
+                                        value={propertyData.subCategoryId}
+                                        onChange={handleInputChange}
+                                        className={errors.subCategoryId ? 'error' : ''}
+                                        disabled={!propertyData.categoryId}
+                                    >
+                                        <option value="">Select Type</option>
+                                        {subcategories.map(sub => (
+                                            <option key={sub.id} value={sub.id}>{sub.name}</option>
+                                        ))}
+                                    </select>
+                                    {errors.subCategoryId && <span className="error-message">{errors.subCategoryId}</span>}
+                                </div>
                             </div>
                             
                             <div className="form-group">
@@ -431,34 +778,7 @@ const handleInputChange = (e) => {
                                 <small>{propertyData.description.length}/500 characters</small>
                                 {errors.description && <span className="error-message">{errors.description}</span>}
                             </div>
-                            <button 
-            type="button" 
-            onClick={async () => {
-                console.log('Current categories:', categories);
-                console.log('Current subcategories:', subcategories);
-                
-                // Test API endpoints
-                try {
-                    const catResponse = await fetch('http://localhost:5000/api/categories');
-                    const catData = await catResponse.json();
-                    console.log('Categories API response:', catData);
-                    
-                    if (catData.data && catData.data[0]) {
-                        const subResponse = await fetch(`http://localhost:5000/api/categories/${catData.data[0].id}/subcategories`);
-                        const subData = await subResponse.json();
-                        console.log(`Subcategories for category ${catData.data[0].id}:`, subData);
-                    }
-                } catch (error) {
-                    console.error('API test error:', error);
-                }
-            }}
-            style={{ marginBottom: '20px', backgroundColor: '#ff0000', color: '#fff', padding: '10px' }}
-        >
-            Test API (Check Console)
-        </button>
                         </div>
-
-                        
                     )}
 
                     {/* Step 2: Location Details */}
@@ -549,292 +869,81 @@ const handleInputChange = (e) => {
                         </div>
                     )}
 
-                    {/* Step 3: Property Details */}
+                    {/* Step 3: Property Details - Dynamic based on property type */}
                     {step === 3 && (
                         <div className="form-step">
                             <h3>Property Details</h3>
                             
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>Bedrooms</label>
-                                    <select 
-                                        name="bedrooms" 
-                                        value={propertyData.bedrooms} 
-                                        onChange={handleBedroomsChange}
-                                    >
-                                        <option value="0">Studio</option>
-                                        <option value="1">1</option>
-                                        <option value="2">2</option>
-                                        <option value="3">3</option>
-                                        <option value="4">4</option>
-                                        <option value="5">5+</option>
-                                    </select>
-                                </div>
-                                
-                                <div className="form-group">
-                                    <label>Bathrooms</label>
-                                    <select name="bathrooms" value={propertyData.bathrooms} onChange={handleInputChange}>
-                                        <option value="1">1</option>
-                                        <option value="2">2</option>
-                                        <option value="3">3</option>
-                                        <option value="4">4+</option>
-                                    </select>
-                                </div>
-                                
-                                <div className="form-group">
-                                    <label>Balconies</label>
-                                    <select name="balconies" value={propertyData.balconies} onChange={handleInputChange}>
-                                        <option value="0">0</option>
-                                        <option value="1">1</option>
-                                        <option value="2">2</option>
-                                        <option value="3">3+</option>
-                                    </select>
-                                </div>
+                            {/* Show property type specific message */}
+                            <div className="property-type-info">
+                                <p>Filling details for: <strong>{selectedPropertyType.replace('-', ' ').toUpperCase()}</strong> property</p>
                             </div>
                             
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>Floor Number</label>
-                                    <input
-                                        type="text"
-                                        name="floorNumber"
-                                        value={propertyData.floorNumber}
-                                        onChange={handleInputChange}
-                                        placeholder="e.g., 3 or Ground"
-                                    />
-                                </div>
-                                
-                                <div className="form-group">
-                                    <label>Total Floors</label>
-                                    <input
-                                        type="number"
-                                        name="totalFloors"
-                                        value={propertyData.totalFloors}
-                                        onChange={handleInputChange}
-                                        placeholder="e.g., 12"
-                                    />
-                                </div>
-                            </div>
+                            {/* Dynamic fields based on property type */}
+                            {renderDynamicFields()}
                             
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>Super Built-up Area (sq ft) *</label>
-                                    <input
-                                        type="number"
-                                        name="superArea"
-                                        value={propertyData.superArea}
-                                        onChange={handleInputChange}
-                                        placeholder="e.g., 1200"
-                                        className={errors.superArea ? 'error' : ''}
-                                    />
-                                    {errors.superArea && <span className="error-message">{errors.superArea}</span>}
+                            {/* Pricing Section - Common for all */}
+                            <div className="form-section">
+                                <h4>Pricing Details</h4>
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Expected Price (₹) *</label>
+                                        <input
+                                            type="number"
+                                            name="price"
+                                            value={propertyData.price}
+                                            onChange={handleInputChange}
+                                            placeholder="e.g., 1500000"
+                                            className={errors.price ? 'error' : ''}
+                                        />
+                                        {errors.price && <span className="error-message">{errors.price}</span>}
+                                    </div>
+                                    
+                                    {selectedPropertyType !== 'land' && selectedPropertyType !== 'commercial-land' && (
+                                        <div className="form-group">
+                                            <label>Maintenance Charge (₹/month)</label>
+                                            <input
+                                                type="number"
+                                                name="maintenanceCharge"
+                                                value={propertyData.maintenanceCharge}
+                                                onChange={handleInputChange}
+                                                placeholder="e.g., 3000"
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                                 
-                                <div className="form-group">
-                                    <label>Carpet Area (sq ft)</label>
-                                    <input
-                                        type="number"
-                                        name="carpetArea"
-                                        value={propertyData.carpetArea}
-                                        onChange={handleInputChange}
-                                        placeholder="e.g., 1000"
-                                    />
-                                </div>
-                            </div>
-                            
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>Expected Price (₹) *</label>
-                                    <input
-                                        type="number"
-                                        name="price"
-                                        value={propertyData.price}
-                                        onChange={handleInputChange}
-                                        placeholder="e.g., 1500000"
-                                        className={errors.price ? 'error' : ''}
-                                    />
-                                    {errors.price && <span className="error-message">{errors.price}</span>}
-                                </div>
+                                {/* For Rent/PG specific pricing */}
+                                {(propertyData.categoryId === '2' || selectedPropertyType === 'pg') && (
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label>Security Deposit (₹)</label>
+                                            <input
+                                                type="number"
+                                                name="securityDeposit"
+                                                value={propertyData.securityDeposit}
+                                                onChange={handleInputChange}
+                                                placeholder="e.g., 50000"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
                                 
                                 <div className="form-group">
-                                    <label>Maintenance Charge (₹/month)</label>
-                                    <input
-                                        type="number"
-                                        name="maintenanceCharge"
-                                        value={propertyData.maintenanceCharge}
-                                        onChange={handleInputChange}
-                                        placeholder="e.g., 3000"
-                                    />
+                                    <label className="checkbox-label">
+                                        <input
+                                            type="checkbox"
+                                            name="negotiable"
+                                            checked={propertyData.negotiable}
+                                            onChange={handleInputChange}
+                                        />
+                                        <span>Price Negotiable</span>
+                                    </label>
                                 </div>
-                            </div>
-                            
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>Furnishing Status</label>
-                                    <select name="furnishingStatus" value={propertyData.furnishingStatus} onChange={handleInputChange}>
-                                        <option value="unfurnished">Unfurnished</option>
-                                        <option value="semi-furnished">Semi-Furnished</option>
-                                        <option value="furnished">Fully Furnished</option>
-                                    </select>
-                                </div>
-                                
-                                <div className="form-group">
-                                    <label>Possession Status</label>
-                                    <select name="possessionStatus" value={propertyData.possessionStatus} onChange={handleInputChange}>
-                                        <option value="ready-to-move">Ready to Move</option>
-                                        <option value="under-construction">Under Construction</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>Property Age</label>
-                                    <select name="ageOfProperty" value={propertyData.ageOfProperty} onChange={handleInputChange}>
-                                        <option value="new">New Construction</option>
-                                        <option value="1-3years">1-3 Years</option>
-                                        <option value="3-5years">3-5 Years</option>
-                                        <option value="5-10years">5-10 Years</option>
-                                        <option value="10plus">10+ Years</option>
-                                    </select>
-                                </div>
-                                
-                                <div className="form-group">
-                                    <label>Ownership Type</label>
-                                    <select name="ownershipType" value={propertyData.ownershipType} onChange={handleInputChange}>
-                                        <option value="owner">Owner</option>
-                                        <option value="dealer">Dealer</option>
-                                        <option value="builder">Builder</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            {/* Amenities */}
-                            <h4>Amenities</h4>
-                            <div className="amenities-grid">
-                                <label className="checkbox-label">
-                                    <input
-                                        type="checkbox"
-                                        name="features.lift"
-                                        checked={propertyData.features.lift}
-                                        onChange={handleInputChange}
-                                    />
-                                    <span>Lift</span>
-                                </label>
-                                
-                                <label className="checkbox-label">
-                                    <input
-                                        type="checkbox"
-                                        name="features.security"
-                                        checked={propertyData.features.security}
-                                        onChange={handleInputChange}
-                                    />
-                                    <span>24x7 Security</span>
-                                </label>
-                                
-                                <label className="checkbox-label">
-                                    <input
-                                        type="checkbox"
-                                        name="features.gym"
-                                        checked={propertyData.features.gym}
-                                        onChange={handleInputChange}
-                                    />
-                                    <span>Gym</span>
-                                </label>
-                                
-                                <label className="checkbox-label">
-                                    <input
-                                        type="checkbox"
-                                        name="features.swimmingPool"
-                                        checked={propertyData.features.swimmingPool}
-                                        onChange={handleInputChange}
-                                    />
-                                    <span>Swimming Pool</span>
-                                </label>
-                                
-                                <label className="checkbox-label">
-                                    <input
-                                        type="checkbox"
-                                        name="features.clubHouse"
-                                        checked={propertyData.features.clubHouse}
-                                        onChange={handleInputChange}
-                                    />
-                                    <span>Club House</span>
-                                </label>
-                                
-                                <label className="checkbox-label">
-                                    <input
-                                        type="checkbox"
-                                        name="features.playArea"
-                                        checked={propertyData.features.playArea}
-                                        onChange={handleInputChange}
-                                    />
-                                    <span>Children's Play Area</span>
-                                </label>
-                                
-                                <label className="checkbox-label">
-                                    <input
-                                        type="checkbox"
-                                        name="features.cctv"
-                                        checked={propertyData.features.cctv}
-                                        onChange={handleInputChange}
-                                    />
-                                    <span>CCTV Surveillance</span>
-                                </label>
-                                
-                                <label className="checkbox-label">
-                                    <input
-                                        type="checkbox"
-                                        name="features.petFriendly"
-                                        checked={propertyData.features.petFriendly}
-                                        onChange={handleInputChange}
-                                    />
-                                    <span>Pet Friendly</span>
-                                </label>
-                                
-                                <label className="checkbox-label">
-                                    <input
-                                        type="checkbox"
-                                        name="features.gasConnection"
-                                        checked={propertyData.features.gasConnection}
-                                        onChange={handleInputChange}
-                                    />
-                                    <span>Gas Pipeline</span>
-                                </label>
-                                
-                                <label className="checkbox-label">
-                                    <input
-                                        type="checkbox"
-                                        name="features.vastu"
-                                        checked={propertyData.features.vastu}
-                                        onChange={handleInputChange}
-                                    />
-                                    <span>Vastu Compliant</span>
-                                </label>
-                                
-                                <label className="checkbox-label">
-                                    <input
-                                        type="checkbox"
-                                        name="features.intercom"
-                                        checked={propertyData.features.intercom}
-                                        onChange={handleInputChange}
-                                    />
-                                    <span>Intercom Facility</span>
-                                </label>
-                                
-                                <label className="checkbox-label">
-                                    <input
-                                        type="checkbox"
-                                        name="features.visitorParking"
-                                        checked={propertyData.features.visitorParking}
-                                        onChange={handleInputChange}
-                                    />
-                                    <span>Visitor Parking</span>
-                                </label>
                             </div>
                         </div>
                     )}
-
+                    
                     {/* Step 4: Images */}
                     {step === 4 && (
                         <div className="form-step">
@@ -909,7 +1018,7 @@ const handleInputChange = (e) => {
                         )}
                     </div>
                 </form>
-                </div>
+            </div>
         </div>
     );
 };

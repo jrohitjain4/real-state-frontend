@@ -1,0 +1,40 @@
+{
+  "name": "real-estate-project",
+  "version": "1.0.0",
+  "description": "Full-stack real estate application with property listings and admin panel",
+  "private": true,
+  "scripts": {
+    "install:all": "npm run install:backend && npm run install:main && npm run install:admin",
+    "install:backend": "cd backend1 && npm install",
+    "install:main": "cd packages/main && npm install",
+    "install:admin": "cd packages/admin && npm install",
+    "setup": "npm run install:all && cd backend1 && npm run setup",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:main\" \"npm run dev:admin\"",
+    "dev:backend": "cd backend1 && npm run dev",
+    "dev:main": "cd packages/main && npm start",
+    "dev:admin": "cd packages/admin && npm start",
+    "start": "npm run dev",
+    "build": "npm run build:main && npm run build:admin",
+    "build:main": "cd packages/main && npm run build",
+    "build:admin": "cd packages/admin && npm run build",
+    "db:reset": "cd backend1 && npm run db:reset",
+    "db:migrate": "cd backend1 && npm run db:migrate",
+    "db:seed": "cd backend1 && npm run db:seed"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "keywords": [
+    "real-estate",
+    "property-management",
+    "react",
+    "node.js",
+    "postgresql"
+  ],
+  "author": "",
+  "license": "ISC"
+}

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { LocationProvider } from "../contexts/LocationContext";
 import { Navigation } from "../landing/components/navigation";
 import { Header } from "../landing/components/header";
 import PropertyListing from "../landing/components/PropertyListing/PropertyListing";
+import PropertyCarousel from "../landing/components/PropertyCarousel/PropertyCarousel";
 import { Features } from "../landing/components/features";
 import { About } from "../landing/components/about";
 import { Services } from "../landing/components/services";
@@ -19,40 +21,80 @@ export const scroll = new SmoothScroll('a[href*="#"]', {
 });
 
 const LandingPage = () => {
+  const navigate = useNavigate();
   const [landingPageData, setLandingPageData] = useState({});
-  const [searchFilters, setSearchFilters] = useState({});
+  const [searchFilters] = useState({});
   
   useEffect(() => {
     setLandingPageData(JsonData);
   }, []);
+  
   const handleSearch = (searchData) => {
-    console.log('Search Data:', searchData);
-    // Handle search logic here
-    // You can navigate to search results page or update state
-      // Update search filters for PropertyListing
-      setSearchFilters({
-        tab: searchData.tab,
-        propertyType: searchData.propertyType,
-        propertySubType: searchData.propertySubType,
-        budgetRange: searchData.budgetRange,
-        searchQuery: searchData.searchQuery
-      });
-      
-      // Scroll to property listing section
-      const propertySection = document.getElementById('property-listing');
-      if (propertySection) {
-        propertySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    console.log('🔍 Landing Search Data:', searchData);
+    
+    // Build query parameters for properties page
+    const queryParams = new URLSearchParams();
+    
+    // Add category filter based on tab
+    if (searchData.tab === 'buy') {
+      queryParams.set('categoryId', '1');
+    } else if (searchData.tab === 'rent') {
+      queryParams.set('categoryId', '2');
+    } else if (searchData.tab === 'pg') {
+      queryParams.set('categoryId', '3');
+    }
+    
+    // Add city filter from search query or selected location
+    if (searchData.searchQuery && searchData.searchQuery.trim()) {
+      queryParams.set('city', searchData.searchQuery.trim());
+    } else if (searchData.location && searchData.location.name && searchData.location.name !== 'Bangalore') {
+      queryParams.set('city', searchData.location.name);
+    }
+    
+    // Add property type filter
+    if (searchData.propertyType && searchData.propertyType !== 'all') {
+      if (searchData.propertyType === '1bhk') {
+        queryParams.set('bedrooms', '1');
+      } else if (searchData.propertyType === '2bhk') {
+        queryParams.set('bedrooms', '2');
+      } else if (searchData.propertyType === '3bhk') {
+        queryParams.set('bedrooms', '3');
       }
+    }
+    
+    // Add budget filter
+    if (searchData.budgetRange && searchData.budgetRange !== 'all') {
+      const budgetRanges = {
+        'under-50': { max: 5000000 },
+        '50-100': { min: 5000000, max: 10000000 },
+        '100-200': { min: 10000000, max: 20000000 },
+        'above-200': { min: 20000000 }
+      };
+      
+      const range = budgetRanges[searchData.budgetRange];
+      if (range) {
+        if (range.min) queryParams.set('minPrice', range.min);
+        if (range.max) queryParams.set('maxPrice', range.max);
+      }
+    }
+    
+    // Navigate to properties page with filters
+    const queryString = queryParams.toString();
+    const propertiesUrl = queryString ? `/properties?${queryString}` : '/properties';
+    
+    console.log('🚀 Redirecting to:', propertiesUrl);
+    navigate(propertiesUrl);
   };
 
   return (
     <LocationProvider>
       <div>
         <Navigation />
-        <Header />
+        <Header onSearch={handleSearch} />
         <section id="property-listing" className="property-section">
           <PropertyListing searchFilters={searchFilters} />
         </section>
+        <PropertyCarousel />
         <Features data={landingPageData.Features} />
         <About data={landingPageData.About} />
         <Services data={landingPageData.Services} />

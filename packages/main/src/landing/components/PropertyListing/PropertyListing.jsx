@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from '../../../contexts/LocationContext';
 import PropertyCard from './PropertyCard';
-import { getFeaturedPropertiesByCity, filterProperties } from '../../data/mockPropertyData';
 import './PropertyListing.css';
 
 const PropertyListing = ({ searchFilters = {} }) => {
@@ -12,21 +11,60 @@ const PropertyListing = ({ searchFilters = {} }) => {
   const [loading, setLoading] = useState(true);
   const [viewAll, setViewAll] = useState(false);
 
-  // Fetch properties when location changes
+  // Fetch properties from backend API
   useEffect(() => {
-    setLoading(true);
-    // Simulate API call delay
-    setTimeout(() => {
-      const cityProperties = getFeaturedPropertiesByCity(currentLocation.name);
-      setProperties(cityProperties);
-      setLoading(false);
-    }, 500);
+    const fetchProperties = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch('http://localhost:5000/api/properties?limit=6');
+        const data = await response.json();
+        
+        if (data.success) {
+          // Filter by current location if available
+          let cityProperties = data.data.properties || data.data;
+          if (currentLocation && currentLocation.name && currentLocation.name !== 'Bangalore') {
+            cityProperties = cityProperties.filter(property => 
+              property.city && property.city.toLowerCase() === currentLocation.name.toLowerCase()
+            );
+          }
+          setProperties(cityProperties);
+        } else {
+          console.error('Failed to fetch properties:', data.message);
+          setProperties([]);
+        }
+      } catch (error) {
+        console.error('Error fetching properties:', error);
+        setProperties([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProperties();
   }, [currentLocation]);
 
   // Apply filters when searchFilters or properties change
   useEffect(() => {
     if (properties.length > 0) {
-      const filtered = filterProperties(properties, searchFilters);
+      let filtered = properties;
+      
+      // Apply basic filters if needed
+      if (searchFilters.propertyType && searchFilters.propertyType !== 'all') {
+        filtered = filtered.filter(property => 
+          property.subCategory && property.subCategory.name && 
+          property.subCategory.name.toLowerCase().includes(searchFilters.propertyType.toLowerCase())
+        );
+      }
+      
+      if (searchFilters.budgetRange) {
+        const { min, max } = searchFilters.budgetRange;
+        filtered = filtered.filter(property => {
+          if (min && property.price < parseInt(min)) return false;
+          if (max && property.price > parseInt(max)) return false;
+          return true;
+        });
+      }
+      
       setFilteredProperties(filtered);
     }
   }, [properties, searchFilters]);

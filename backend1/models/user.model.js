@@ -4,7 +4,17 @@ const bcrypt = require('bcryptjs');
 module.exports = (sequelize, Sequelize) => {
     const User = sequelize.define('User', {
         // Basic fields (existing)
-        name: {
+        id: {
+            type: Sequelize.UUID,
+            defaultValue: Sequelize.UUIDV4,
+            primaryKey: true,
+            allowNull: false
+        },
+        firstName: {
+            type: Sequelize.STRING,
+            allowNull: false
+        },
+        lastName: {
             type: Sequelize.STRING,
             allowNull: false
         },
@@ -24,74 +34,29 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.ENUM('user', 'admin'),
             defaultValue: 'user'
         },
-        phone: {
-            type: Sequelize.STRING,
-            allowNull: true,
-            defaultValue: null
-        },
-        googleId: {
-            type: Sequelize.STRING,
-            allowNull: true,
-            defaultValue: null,
-            unique: true
-        },
-        picture: {
-            type: Sequelize.STRING,
-            allowNull: true,
-            defaultValue: null
-        },
-        profilePhoto: {
+        phoneNumber: {
             type: Sequelize.STRING,
             allowNull: true,
             defaultValue: null
         },
         
-        // KYC fields
-        aadharNumber: {
-            type: Sequelize.STRING(12),
-            allowNull: true
-        },
-        aadharPhoto: {
-            type: Sequelize.STRING,
-            allowNull: true
-        },
-        panNumber: {
-            type: Sequelize.STRING(10),
-            allowNull: true
-        },
-        panPhoto: {
-            type: Sequelize.STRING,
-            allowNull: true
-        },
-        
-        // Address fields
-        address: {
-            type: Sequelize.TEXT,
-            allowNull: true
-        },
-        city: {
-            type: Sequelize.STRING,
-            allowNull: true
-        },
-        state: {
-            type: Sequelize.STRING,
-            allowNull: true
-        },
-        pincode: {
-            type: Sequelize.STRING(6),
-            allowNull: true
-        },
-        
-        // Profile status
-        profileCompleted: {
+        isVerified: {
             type: Sequelize.BOOLEAN,
             defaultValue: false
         },
-        kycVerified: {
-            type: Sequelize.BOOLEAN,
-            defaultValue: false
+        verificationToken: {
+            type: Sequelize.STRING,
+            allowNull: true
         },
-        profileCompletedAt: {
+        resetPasswordToken: {
+            type: Sequelize.STRING,
+            allowNull: true
+        },
+        resetPasswordExpires: {
+            type: Sequelize.DATE,
+            allowNull: true
+        },
+        lastLogin: {
             type: Sequelize.DATE,
             allowNull: true
         }
@@ -109,13 +74,8 @@ module.exports = (sequelize, Sequelize) => {
 
     // Method to check profile completion
     User.prototype.checkProfileCompletion = function() {
-        const requiredFields = ['phone', 'aadharNumber', 'panNumber', 'address', 'city', 'state', 'pincode'];
+        const requiredFields = ['phoneNumber'];
         const isComplete = requiredFields.every(field => this[field] !== null && this[field] !== '');
-        
-        if (isComplete && !this.profileCompleted) {
-            this.profileCompleted = true;
-            this.profileCompletedAt = new Date();
-        }
         
         return isComplete;
     };

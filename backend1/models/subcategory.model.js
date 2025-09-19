@@ -54,6 +54,11 @@ module.exports = (sequelize, Sequelize) => {
         allowCommercial: {
             type: Sequelize.BOOLEAN,
             defaultValue: false
+        },
+        propertyType: {
+            type: Sequelize.STRING,
+            allowNull: true,
+            defaultValue: 'residential'
         }
     }, {
         tableName: 'subcategories',

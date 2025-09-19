@@ -166,3 +166,24 @@
       text-align: left;
     }
   }
+
+  /* Additional styles for new elements */
+  .price-per-sqft {
+    font-size: 12px;
+    color: #7f8c8d;
+    margin-top: 2px;
+    display: block;
+  }
+
+  .property-area {
+    font-size: 12px;
+    color: #7f8c8d;
+    margin: 4px 0;
+  }
+
+  .furnishing-status {
+    font-size: 11px;
+    color: #27ae60;
+    font-weight: 500;
+    margin-left: 8px;
+  }
