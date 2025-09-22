@@ -200,6 +200,11 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.ENUM('residential', 'land', 'commercial', 'commercial-land', 'farmhouse', 'studio', 'pg'),
             allowNull: true
         },
+        property_for: {
+            type: Sequelize.ENUM('commercial', 'residential'),
+            allowNull: false,
+            defaultValue: 'residential'
+        },
         
         // Land specific fields
         plotArea: {

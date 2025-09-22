@@ -4,6 +4,7 @@ import { LocationProvider } from "../contexts/LocationContext";
 import { Navigation } from "../landing/components/navigation";
 import { Header } from "../landing/components/header";
 import PropertyListing from "../landing/components/PropertyListing/PropertyListing";
+import PropertyCategories from "../landing/components/PropertyCategories/PropertyCategories";
 import PropertyCarousel from "../landing/components/PropertyCarousel/PropertyCarousel";
 import { Features } from "../landing/components/features";
 import { About } from "../landing/components/about";
@@ -91,6 +92,7 @@ const LandingPage = () => {
       <div>
         <Navigation />
         <Header onSearch={handleSearch} />
+        <PropertyCategories />
         <section id="property-listing" className="property-section">
           <PropertyListing searchFilters={searchFilters} />
         </section>

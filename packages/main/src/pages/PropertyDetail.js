@@ -61,7 +61,7 @@ const PropertyDetail = () => {
             <div className="property-gallery">
                 <div className="main-image">
                     <img 
-                        src={property.images[selectedImage]?.imageUrl || '/default-property.jpg'} 
+                        src={property.images[selectedImage]?.imageUrl ? `http://localhost:5000${property.images[selectedImage].imageUrl}` : '/default-property.jpg'} 
                         alt={property.title} 
                     />
                 </div>
@@ -74,7 +74,7 @@ const PropertyDetail = () => {
                                 className={`thumbnail ${selectedImage === index ? 'active' : ''}`}
                                 onClick={() => setSelectedImage(index)}
                             >
-                                <img src={image.imageUrl} alt={`View ${index + 1}`} />
+                                <img src={`http://localhost:5000${image.imageUrl}`} alt={`View ${index + 1}`} />
                             </div>
                         ))}
                     </div>

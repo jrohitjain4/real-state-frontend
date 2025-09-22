@@ -7,6 +7,7 @@ const uploadProperty = require('../middleware/uploadProperty');
 
 // Public routes
 router.get('/properties', propertyController.getAllProperties);
+router.get('/properties/counts', propertyController.getPropertyCounts);
 router.get('/properties/:slug', propertyController.getPropertyBySlug);
 router.get('/properties/:id/similar', propertyController.getSimilarProperties);
 

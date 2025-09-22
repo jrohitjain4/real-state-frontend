@@ -47,6 +47,7 @@ import PropertyDetail from './pages/PropertyDetail';
 import MyProperties from './pages/MyProperties';
 import { Navigation } from './landing/components/navigation';
 import { LocationProvider } from './contexts/LocationContext';
+import { AuthProvider } from './contexts/AuthContext';
 
 
 
@@ -57,23 +58,25 @@ const AppContent = () => {
   const isLandingPage = location.pathname === '/';
 
   return (
-    <LocationProvider>
-      <div className="App">
-        {/* Show navigation on all pages except landing page (it has its own) */}
-        {!isLandingPage && <Navigation />}
-        
-        <Routes>
-        <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/complete-profile" element={<CompleteProfile />} />
-          <Route path="/properties" element={<PropertyListing />} />
-        <Route path="/property/:slug" element={<PropertyDetail />} />
-        <Route path="/add-property" element={<AddProperty />} />
-        <Route path="/my-properties" element={<MyProperties />} />
-        </Routes>
-      </div>
-    </LocationProvider>
+    <AuthProvider>
+      <LocationProvider>
+        <div className="App">
+          {/* Show navigation on all pages except landing page (it has its own) */}
+          {!isLandingPage && <Navigation />}
+          
+          <Routes>
+          <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/complete-profile" element={<CompleteProfile />} />
+            <Route path="/properties" element={<PropertyListing />} />
+          <Route path="/property/:slug" element={<PropertyDetail />} />
+          <Route path="/add-property" element={<AddProperty />} />
+          <Route path="/my-properties" element={<MyProperties />} />
+          </Routes>
+        </div>
+      </LocationProvider>
+    </AuthProvider>
   );
 };
 

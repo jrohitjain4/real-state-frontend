@@ -64,5 +64,39 @@ export const authAPI = {
 
   getToken: () => {
     return localStorage.getItem('token');
+  },
+
+  // Check if user profile is complete
+  checkProfileCompletion: async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        return { isComplete: false, needsLogin: true };
+      }
+
+      const response = await fetch(`${API_BASE_URL}/data/profile-status`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to check profile status');
+      }
+
+      return {
+        isComplete: data.user.profileCompleted || false,
+        needsLogin: false,
+        completionPercentage: data.completionPercentage || 0,
+        user: data.user
+      };
+    } catch (error) {
+      console.error('Profile completion check error:', error);
+      return { isComplete: false, needsLogin: true };
+    }
   }
 };

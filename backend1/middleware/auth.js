@@ -5,7 +5,15 @@ const User = db.User;
 // Middleware to verify JWT token
 const auth = async (req, res, next) => {
     try {
-        const token = req.header('x-auth-token');
+        let token = req.header('x-auth-token');
+        
+        // Also check Authorization header for Bearer token
+        if (!token) {
+            const authHeader = req.header('Authorization');
+            if (authHeader && authHeader.startsWith('Bearer ')) {
+                token = authHeader.substring(7); // Remove 'Bearer ' prefix
+            }
+        }
         
         if (!token) {
             return res.status(401).json({ msg: 'No token, authorization denied' });

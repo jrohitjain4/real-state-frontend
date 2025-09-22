@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authAPI } from '../api/auth';
+import { useAuth } from '../contexts/AuthContext';
 // Make sure to update the CSS file name if you change it.
 import './LoginPage.css';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { login, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -17,11 +18,10 @@ const LoginPage = () => {
 
   useEffect(() => {
     // Check if already logged in
-    const token = localStorage.getItem('token');
-    if (token) {
+    if (isAuthenticated) {
       navigate('/');
     }
-  }, [navigate]);
+  }, [isAuthenticated, navigate]);
 
 
   const handleChange = (e) => {
@@ -50,12 +50,9 @@ const LoginPage = () => {
     }
 
     try {
-      const response = await authAPI.login(formData.email, formData.password);
+      const response = await login(formData.email, formData.password);
       
       if (response.success) {
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user));
-        
         if (rememberMe) {
           localStorage.setItem('rememberMe', 'true');
           localStorage.setItem('savedEmail', formData.email);
@@ -69,11 +66,7 @@ const LoginPage = () => {
       }
     } catch (err) {
       console.error('Login error:', err);
-      if (err.response?.data?.message) {
-        setError(err.response.data.message);
-      } else {
-        setError('Login failed. Please check your credentials and try again.');
-      }
+      setError('Login failed. Please check your credentials and try again.');
     } finally {
       setLoading(false);
     }

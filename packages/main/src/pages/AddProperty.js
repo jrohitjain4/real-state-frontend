@@ -18,6 +18,7 @@ const AddProperty = () => {
         categoryId: '',
         subCategoryId: '',
         propertyConfiguration: '',
+        property_for: 'residential', // User selects this first
         title: '',
         description: '',
         
@@ -105,15 +106,30 @@ const AddProperty = () => {
     useEffect(() => {
         if (propertyData.subCategoryId && subcategories.length > 0) {
             const selectedSubcat = subcategories.find(sub => sub.id === parseInt(propertyData.subCategoryId));
-            console.log('Selected subcategory:', selectedSubcat); // Debug log
             if (selectedSubcat && selectedSubcat.propertyType) {
-                console.log('Setting property type to:', selectedSubcat.propertyType); // Debug log
                 setSelectedPropertyType(selectedSubcat.propertyType);
                 // Reset features based on new property type
                 resetFeaturesForPropertyType(selectedSubcat.propertyType);
+                
+                // Update property_for based on subcategory if it's commercial
+                if (selectedSubcat.name.toLowerCase().includes('godown') || 
+                    selectedSubcat.name.toLowerCase().includes('commercial') ||
+                    selectedSubcat.propertyType === 'commercial-land') {
+                    setPropertyData(prev => ({
+                        ...prev,
+                        property_for: 'commercial'
+                    }));
+                }
             }
         }
     }, [propertyData.subCategoryId, subcategories]);
+
+    // Handle property_for changes to refetch subcategories
+    useEffect(() => {
+        if (propertyData.categoryId && propertyData.property_for) {
+            handleCategoryChange(propertyData.categoryId, propertyData.property_for);
+        }
+    }, [propertyData.property_for]);
 
     const resetFeaturesForPropertyType = (propertyType) => {
         const config = propertyFormConfig[propertyType];
@@ -161,13 +177,18 @@ const AddProperty = () => {
         }
     };
 
-    const handleCategoryChange = async (categoryId) => {
-        setPropertyData({ 
-            ...propertyData, 
-            categoryId, 
-            subCategoryId: '', 
-            propertyConfiguration: '' 
-        });
+    const handleCategoryChange = async (categoryId, propertyFor = null) => {
+        const currentPropertyFor = propertyFor || propertyData.property_for;
+        
+        // Only update categoryId if it's different
+        if (categoryId !== propertyData.categoryId) {
+            setPropertyData(prev => ({ 
+                ...prev, 
+                categoryId, 
+                subCategoryId: '', 
+                propertyConfiguration: ''
+            }));
+        }
         
         setSubcategories([]);
         
@@ -177,7 +198,23 @@ const AddProperty = () => {
                 const data = await response.json();
                 
                 if (data.success && data.data) {
-                    setSubcategories(data.data);
+                    // Filter subcategories based on property_for
+                    const filteredSubcategories = data.data.filter(sub => {
+                        if (currentPropertyFor === 'residential') {
+                            // Show residential subcategories (exclude godown and commercial properties)
+                            return !sub.name.toLowerCase().includes('godown') && 
+                                   sub.propertyType !== 'commercial' &&
+                                   sub.propertyType !== 'commercial-land';
+                        } else if (currentPropertyFor === 'commercial') {
+                            // Show commercial subcategories (include godown and land)
+                            return sub.name.toLowerCase().includes('godown') || 
+                                   sub.name.toLowerCase().includes('land') ||
+                                   sub.propertyType === 'commercial' ||
+                                   sub.propertyType === 'commercial-land';
+                        }
+                        return true;
+                    });
+                    setSubcategories(filteredSubcategories);
                 }
             } catch (error) {
                 console.error('Error fetching subcategories:', error);
@@ -185,8 +222,16 @@ const AddProperty = () => {
         }
     };
 
+    // Filter categories to show only Buy, Sell, Rent, Lease
+    const getFilteredCategories = () => {
+        return categories.filter(cat => 
+            ['buy', 'sell', 'rent', 'lease'].includes(cat.slug)
+        );
+    };
+
     const renderDynamicFields = () => {
-        const config = propertyFormConfig[selectedPropertyType];
+        const actualPropertyType = getActualPropertyType();
+        const config = propertyFormConfig[actualPropertyType];
         if (!config) return null;
 
         return (
@@ -406,6 +451,40 @@ const AddProperty = () => {
         return name.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
     };
 
+    // Helper function to get the correct property type based on subcategory
+    const getActualPropertyType = () => {
+        let actualPropertyType = selectedPropertyType;
+        
+        // Special handling for Godown and Commercial Land - they should show commercial fields
+        if (propertyData.subCategoryId) {
+            const selectedSubcat = subcategories.find(sub => sub.id === parseInt(propertyData.subCategoryId));
+            if (selectedSubcat) {
+                if (selectedSubcat.name.toLowerCase().includes('godown') || 
+                    selectedSubcat.name.toLowerCase().includes('commercial') ||
+                    selectedSubcat.propertyType === 'commercial-land') {
+                    actualPropertyType = 'commercial';
+                }
+            }
+        }
+        
+        return actualPropertyType;
+    };
+
+    const handlePropertyForChange = async (value) => {
+        setPropertyData(prev => ({
+            ...prev,
+            property_for: value,
+            subCategoryId: '',
+            propertyConfiguration: ''
+        }));
+        setSubcategories([]);
+        
+        // Refetch subcategories if category is already selected
+        if (propertyData.categoryId) {
+            await handleCategoryChange(propertyData.categoryId, value);
+        }
+    };
+
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
         
@@ -429,13 +508,28 @@ const AddProperty = () => {
                 finalValue = parseFloat(value) || 0;
             }
             
+            // Handle property_for change to refetch subcategories
+            if (name === 'property_for') {
+                handlePropertyForChange(value);
+                return;
+            }
+            
             // Handle subcategory change to update property type immediately
             if (name === 'subCategoryId' && value) {
                 const selectedSubcat = subcategories.find(sub => sub.id === parseInt(value));
                 if (selectedSubcat && selectedSubcat.propertyType) {
-                    console.log('Immediately setting property type to:', selectedSubcat.propertyType);
                     setSelectedPropertyType(selectedSubcat.propertyType);
                     resetFeaturesForPropertyType(selectedSubcat.propertyType);
+                    
+                    // Update property_for based on subcategory if it's commercial
+                    if (selectedSubcat.name.toLowerCase().includes('godown') || 
+                        selectedSubcat.name.toLowerCase().includes('commercial') ||
+                        selectedSubcat.propertyType === 'commercial-land') {
+                        setPropertyData(prev => ({
+                            ...prev,
+                            property_for: 'commercial'
+                        }));
+                    }
                 }
             }
             
@@ -475,11 +569,13 @@ const AddProperty = () => {
 
     const validateStep = () => {
         const newErrors = {};
-        const config = propertyFormConfig[selectedPropertyType];
+        const actualPropertyType = getActualPropertyType();
+        const config = propertyFormConfig[actualPropertyType];
         
         switch(step) {
             case 1:
                 if (!propertyData.categoryId) newErrors.categoryId = 'Please select a category';
+                if (!propertyData.property_for) newErrors.property_for = 'Please select property for';
                 if (!propertyData.subCategoryId) newErrors.subCategoryId = 'Please select a property type';
                 if (!propertyData.title) newErrors.title = 'Title is required';
                 if (!propertyData.description || propertyData.description.length < 50) {
@@ -499,15 +595,15 @@ const AddProperty = () => {
                 
             case 3:
                 // Validate based on property type
-                if (selectedPropertyType === 'land' || selectedPropertyType === 'commercial-land') {
+                if (actualPropertyType === 'land' || actualPropertyType === 'commercial-land') {
                     if (!propertyData.plotArea || propertyData.plotArea <= 0) {
                         newErrors.plotArea = 'Plot area is required';
                     }
-                } else if (selectedPropertyType === 'farmhouse') {
+                } else if (actualPropertyType === 'farmhouse') {
                     if (!propertyData.totalArea || propertyData.totalArea <= 0) {
                         newErrors.totalArea = 'Total area is required';
                     }
-                } else if (selectedPropertyType === 'pg') {
+                } else if (actualPropertyType === 'pg') {
                     if (!propertyData.totalBeds) newErrors.totalBeds = 'Total beds is required';
                     if (!propertyData.availableBeds) newErrors.availableBeds = 'Available beds is required';
                 } else {
@@ -560,14 +656,19 @@ const AddProperty = () => {
             }
         });
         
+        // Determine the correct property type for submission
+        const actualPropertyType = getActualPropertyType();
+        
         // Remove irrelevant fields based on property type
         const propertyPayload = {
             ...cleanPropertyData,
-            propertyType: selectedPropertyType
+            propertyType: actualPropertyType,
+            property_for: propertyData.property_for // Ensure property_for is included
         };
         
+        
         // Clean up fields based on property type
-        if (selectedPropertyType === 'land' || selectedPropertyType === 'commercial-land') {
+        if (actualPropertyType === 'land' || actualPropertyType === 'commercial-land') {
             // For land, remove residential-specific fields
             delete propertyPayload.bedrooms;
             delete propertyPayload.bathrooms;
@@ -579,7 +680,7 @@ const AddProperty = () => {
             delete propertyPayload.totalFloors;
             delete propertyPayload.furnishingStatus;
             delete propertyPayload.maintenanceCharge;
-        } else if (selectedPropertyType === 'pg') {
+        } else if (actualPropertyType === 'pg') {
             // For PG, remove residential bedroom/bathroom fields
             delete propertyPayload.bedrooms;
             delete propertyPayload.bathrooms;
@@ -587,7 +688,7 @@ const AddProperty = () => {
             delete propertyPayload.superArea;
             delete propertyPayload.builtUpArea;
             delete propertyPayload.carpetArea;
-        } else if (selectedPropertyType === 'commercial') {
+        } else if (actualPropertyType === 'commercial') {
             // For commercial, remove residential-specific fields
             delete propertyPayload.bedrooms;
             delete propertyPayload.bathrooms;
@@ -595,6 +696,7 @@ const AddProperty = () => {
         }
         
         try {
+            console.log('🚀 Submitting property with payload:', propertyPayload);
             
             // First create property
             const response = await fetch('http://localhost:5000/api/properties', {
@@ -607,6 +709,7 @@ const AddProperty = () => {
             });
             
             const data = await response.json();
+            console.log('📥 Property creation response:', data);
             
             // Check for authentication error
             if (response.status === 401) {
@@ -624,18 +727,27 @@ const AddProperty = () => {
             
             // Upload images if any
             if (images.length > 0) {
+                console.log(`🖼️ Uploading ${images.length} images for property ${data.data.id}`);
                 const formData = new FormData();
                 images.forEach(image => {
                     formData.append('images', image);
                 });
                 
-                await fetch(`http://localhost:5000/api/properties/${data.data.id}/images`, {
+                const imageResponse = await fetch(`http://localhost:5000/api/properties/${data.data.id}/images`, {
                     method: 'POST',
                     headers: {
                         'x-auth-token': localStorage.getItem('token')
                     },
                     body: formData
                 });
+                
+                const imageData = await imageResponse.json();
+                console.log('📸 Image upload response:', imageData);
+                
+                if (!imageResponse.ok) {
+                    console.error('❌ Image upload failed:', imageData);
+                    // Don't fail the entire process if image upload fails
+                }
             }
             
             alert('Property posted successfully!');
@@ -719,7 +831,7 @@ const AddProperty = () => {
                             
                             <div className="form-row">
                                 <div className="form-group">
-                                    <label>Property For *</label>
+                                    <label>Category *</label>
                                     <select
                                         name="categoryId"
                                         value={propertyData.categoryId}
@@ -727,13 +839,29 @@ const AddProperty = () => {
                                         className={errors.categoryId ? 'error' : ''}
                                     >
                                         <option value="">Select Category</option>
-                                        {categories.map(cat => (
+                                        {getFilteredCategories().map(cat => (
                                             <option key={cat.id} value={cat.id}>{cat.name}</option>
                                         ))}
                                     </select>
                                     {errors.categoryId && <span className="error-message">{errors.categoryId}</span>}
                                 </div>
                                 
+                                <div className="form-group">
+                                    <label>Property For *</label>
+                                    <select
+                                        name="property_for"
+                                        value={propertyData.property_for}
+                                        onChange={handleInputChange}
+                                        className={errors.property_for ? 'error' : ''}
+                                    >
+                                        <option value="residential">Residential</option>
+                                        <option value="commercial">Commercial</option>
+                                    </select>
+                                    {errors.property_for && <span className="error-message">{errors.property_for}</span>}
+                                </div>
+                            </div>
+                            
+                            <div className="form-row">
                                 <div className="form-group">
                                     <label>Property Type *</label>
                                     <select
@@ -876,7 +1004,7 @@ const AddProperty = () => {
                             
                             {/* Show property type specific message */}
                             <div className="property-type-info">
-                                <p>Filling details for: <strong>{selectedPropertyType.replace('-', ' ').toUpperCase()}</strong> property</p>
+                                <p>Filling details for: <strong>{propertyData.property_for.toUpperCase()}</strong> property</p>
                             </div>
                             
                             {/* Dynamic fields based on property type */}
@@ -899,7 +1027,7 @@ const AddProperty = () => {
                                         {errors.price && <span className="error-message">{errors.price}</span>}
                                     </div>
                                     
-                                    {selectedPropertyType !== 'land' && selectedPropertyType !== 'commercial-land' && (
+                                    {getActualPropertyType() !== 'land' && getActualPropertyType() !== 'commercial-land' && (
                                         <div className="form-group">
                                             <label>Maintenance Charge (₹/month)</label>
                                             <input
@@ -914,7 +1042,7 @@ const AddProperty = () => {
                                 </div>
                                 
                                 {/* For Rent/PG specific pricing */}
-                                {(propertyData.categoryId === '2' || selectedPropertyType === 'pg') && (
+                                {(propertyData.categoryId === '2' || getActualPropertyType() === 'pg') && (
                                     <div className="form-row">
                                         <div className="form-group">
                                             <label>Security Deposit (₹)</label>

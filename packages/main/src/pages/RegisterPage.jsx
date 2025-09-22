@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { authAPI } from '../api/auth';
+import { useAuth } from '../contexts/AuthContext';
 import './RegisterPage.css';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const { register, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -102,20 +103,10 @@ const RegisterPage = () => {
         role: formData.role
       };
 
-      const response = await authAPI.register(userData);
+      const response = await register(userData);
 
       if (response.success) {
-        // Auto login after successful registration
-        const loginResponse = await authAPI.login(userData.email, userData.password);
-        
-        if (loginResponse.success) {
-          localStorage.setItem('token', loginResponse.token);
-          localStorage.setItem('user', JSON.stringify(loginResponse.user));
-          navigate('/');
-        } else {
-          // Registration successful but login failed, redirect to login page
-          navigate('/login?registered=true');
-        }
+        navigate('/');
       } else {
         setErrors({ general: response.message || 'Registration failed. Please try again.' });
       }

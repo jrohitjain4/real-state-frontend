@@ -2,6 +2,7 @@
 import React from 'react';
 import PropertySearchFilter from './PropertySearchFilter/PropertySearchFilter';
 import PropertyListing from './PropertyListing/PropertyListing';
+import BackgroundCarousel from './BackgroundCarousel/BackgroundCarousel';
 
 export const Header = ({ data, onSearch }) => {
   const handleSearch = (searchData) => {
@@ -14,6 +15,7 @@ export const Header = ({ data, onSearch }) => {
   return (
     <header id="header">
       <div className="intro">
+        <BackgroundCarousel />
         <div className="overlay">
           <div className="container">
             <div className="row">

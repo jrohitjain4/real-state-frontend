@@ -1,168 +1,119 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination, A11y } from 'swiper/modules';
+
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+
 import './PropertyCarousel.css';
 
+const featuredProperties = [
+    {
+        id: 1, slug: 'luxurious-sea-view-apartment', title: 'Luxurious Sea View Apartment', price: 35000000, category: { name: 'Apartment' },
+        images: [{ imageUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=870&q=80' }],
+        locality: 'Bandra West', city: 'Mumbai', bedrooms: 3, bathrooms: 3, superArea: 1800,
+    },
+    {
+        id: 2, slug: 'modern-independent-villa', title: 'Modern Independent Villa', price: 52500000, category: { name: 'Villa' },
+        images: [{ imageUrl: 'https://images.unsplash.com/photo-1600585152220-90363fe7e115?ixlib=rb-4.0.3&auto=format&fit=crop&w=870&q=80' }],
+        locality: 'Jubilee Hills', city: 'Hyderabad', bedrooms: 4, bathrooms: 5, superArea: 3200,
+    },
+    {
+        id: 3, slug: 'cozy-2bhk-flat-in-city-center', title: 'Cozy 2BHK Flat in City Center', price: 8500000, category: { name: 'Flat' },
+        images: [{ imageUrl: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=870&q=80' }],
+        locality: 'Indiranagar', city: 'Bangalore', bedrooms: 2, bathrooms: 2, superArea: 1250,
+    },
+    {
+        id: 4, slug: 'spacious-penthouse-with-terrace', title: 'Spacious Penthouse with Terrace', price: 78000000, category: { name: 'Penthouse' },
+        images: [{ imageUrl: 'https://images.unsplash.com/photo-1594411998064-897e085a6331?ixlib=rb-4.0.3&auto=format&fit=crop&w=774&q=80' }],
+        locality: 'DLF Phase 5', city: 'Gurgaon', bedrooms: 5, bathrooms: 6, superArea: 4500,
+    },
+    {
+        id: 5, slug: 'ready-to-move-in-studio-apartment', title: 'Ready to Move-in Studio', price: 5500000, category: { name: 'Studio' },
+        images: [{ imageUrl: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=870&q=80' }],
+        locality: 'Hinjewadi', city: 'Pune', bedrooms: 1, bathrooms: 1, superArea: 650,
+    },
+    {
+        id: 6, slug: 'farmhouse-with-private-pool', title: 'Farmhouse with Private Pool', price: 95000000, category: { name: 'Farmhouse' },
+        images: [{ imageUrl: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?ixlib=rb-4.0.3&auto=format&fit=crop&w=774&q=80' }],
+        locality: 'Ecr Road', city: 'Chennai', bedrooms: 4, bathrooms: 4, superArea: 5500,
+    },
+];
+
 const PropertyCarousel = () => {
-    const [properties, setProperties] = useState([]);
-    const [currentSlide, setCurrentSlide] = useState(0);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        fetchFeaturedProperties();
-    }, []);
-
-    const fetchFeaturedProperties = async () => {
-        try {
-            const response = await fetch('http://localhost:5000/api/properties?limit=6&sortBy=price&sortOrder=DESC');
-            const data = await response.json();
-            
-            if (data.success) {
-                setProperties(data.data.properties);
-            }
-        } catch (error) {
-            console.error('Error fetching properties:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
+    
     const formatPrice = (price) => {
-        if (price >= 10000000) {
-            return `₹${(price / 10000000).toFixed(2)} Cr`;
-        } else if (price >= 100000) {
-            return `₹${(price / 100000).toFixed(2)} Lac`;
-        }
+        if (price >= 10000000) return `₹${(price / 10000000).toFixed(2)} Cr`;
+        if (price >= 100000) return `₹${(price / 100000).toFixed(2)} Lac`;
         return `₹${price.toLocaleString('en-IN')}`;
     };
-
-    const nextSlide = () => {
-        setCurrentSlide((prev) => (prev + 1) % Math.ceil(properties.length / 3));
-    };
-
-    const prevSlide = () => {
-        setCurrentSlide((prev) => (prev - 1 + Math.ceil(properties.length / 3)) % Math.ceil(properties.length / 3));
-    };
-
-    const getVisibleProperties = () => {
-        const startIndex = currentSlide * 3;
-        return properties.slice(startIndex, startIndex + 3);
-    };
-
-    if (loading) {
-        return (
-            <div className="property-carousel-loading">
-                <div className="loader"></div>
-            </div>
-        );
-    }
-
-    if (properties.length === 0) {
-        return null;
-    }
-
+    
     return (
         <section className="property-carousel-section">
             <div className="container">
                 <div className="carousel-header">
-                    <h2>Premium Properties</h2>
-                    <p>Discover our finest collection of luxury properties</p>
+                    <h2>Featured Properties</h2>
+                    <p>Handpicked properties from our exclusive portfolio</p>
                 </div>
-
-                <div className="property-carousel">
-                    <button className="carousel-btn prev-btn" onClick={prevSlide}>
-                        <i className="fas fa-chevron-left"></i>
-                    </button>
-
-                    <div className="carousel-container">
-                        <div 
-                            className="carousel-track"
-                            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-                        >
-                            {Array.from({ length: Math.ceil(properties.length / 3) }).map((_, slideIndex) => (
-                                <div key={slideIndex} className="carousel-slide">
-                                    {properties.slice(slideIndex * 3, slideIndex * 3 + 3).map((property) => (
-                                        <div key={property.id} className="property-card-carousel">
-                                            <div className="property-image-wrapper">
-                                                <img 
-                                                    src={
-                                                        property.images && property.images.length > 0 
-                                                            ? property.images[0].imageUrl
-                                                            : '/img/portfolio/01-small.jpg'
-                                                    }
-                                                    alt={property.title}
-                                                    className="property-image"
-                                                />
-                                                <div className="property-overlay">
-                                                    <div className="property-badge">
-                                                        {property.category?.name}
-                                                    </div>
-                                                </div>
+                
+                {/* --- WRAPPER FOR SWIPER AND NAVIGATION --- */}
+                <div className="carousel-wrapper">
+                    <Swiper
+                        modules={[Navigation, Pagination, A11y]}
+                        spaceBetween={30}
+                        slidesPerView={1}
+                        navigation={{
+                            nextEl: '.swiper-button-next-custom',
+                            prevEl: '.swiper-button-prev-custom',
+                        }}
+                        pagination={{ clickable: true }}
+                        loop={true}
+                        breakpoints={{
+                            640: { slidesPerView: 2, spaceBetween: 20 },
+                            1024: { slidesPerView: 3, spaceBetween: 30 },
+                        }}
+                        className="property-swiper"
+                    >
+                        {featuredProperties.map((property) => (
+                            <SwiperSlide key={property.id}>
+                                {/* --- VERTICAL CARD STRUCTURE --- */}
+                                <div className="property-card-vertical">
+                                    <div className="property-image-wrapper">
+                                        <img src={property.images[0]?.imageUrl} alt={property.title} className="property-image" />
+                                        <div className="property-badge">{property.category?.name}</div>
+                                    </div>
+                                    <div className="property-content">
+                                        <div className="property-info-main">
+                                            <h3 className="property-title">{property.title}</h3>
+                                            <div className="property-location">
+                                                <i className="fas fa-map-marker-alt"></i>
+                                                {property.locality}, {property.city}
                                             </div>
-                                            
-                                            <div className="property-content">
-                                                <div className="property-location">
-                                                    <i className="fas fa-map-marker-alt"></i>
-                                                    {property.locality}, {property.city}
-                                                </div>
-                                                
-                                                <h3 className="property-title">
-                                                    {property.bedrooms > 0 ? `${property.bedrooms} BHK ` : ''}
-                                                    {property.subcategory?.name}
-                                                </h3>
-                                                
-                                                <div className="property-features">
-                                                    {property.superArea && (
-                                                        <span className="feature">
-                                                            <i className="fas fa-expand-arrows-alt"></i>
-                                                            {property.superArea} sqft
-                                                        </span>
-                                                    )}
-                                                    {property.bedrooms > 0 && (
-                                                        <span className="feature">
-                                                            <i className="fas fa-bed"></i>
-                                                            {property.bedrooms} Bed
-                                                        </span>
-                                                    )}
-                                                    {property.bathrooms > 0 && (
-                                                        <span className="feature">
-                                                            <i className="fas fa-bath"></i>
-                                                            {property.bathrooms} Bath
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                
-                                                <div className="property-footer">
-                                                    <div className="property-price">
-                                                        {formatPrice(property.price)}
-                                                    </div>
-                                                    <Link 
-                                                        to={`/property/${property.slug}`}
-                                                        className="view-property-btn"
-                                                    >
-                                                        View Details
-                                                    </Link>
-                                                </div>
+                                            <div className="property-features">
+                                                <span className="feature"><i className="fas fa-ruler-combined"></i> {property.superArea} sqft</span>
+                                                <span className="feature"><i className="fas fa-bed"></i> {property.bedrooms} Bed</span>
+                                                <span className="feature"><i className="fas fa-bath"></i> {property.bathrooms} Bath</span>
                                             </div>
                                         </div>
-                                    ))}
+                                        <div className="property-footer">
+                                            <div className="property-price">{formatPrice(property.price)}</div>
+                                            <Link to={`/property/${property.slug}`} className="view-property-btn">Details</Link>
+                                        </div>
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
+                            </SwiperSlide>
+                        ))}
+                    </Swiper>
+                    
+                    {/* --- CUSTOM NAVIGATION BUTTONS --- */}
+                    <div className="swiper-button-prev-custom">
+                        <i className="fas fa-chevron-left"></i>
                     </div>
-
-                    <button className="carousel-btn next-btn" onClick={nextSlide}>
+                    <div className="swiper-button-next-custom">
                         <i className="fas fa-chevron-right"></i>
-                    </button>
-                </div>
-
-                <div className="carousel-indicators">
-                    {Array.from({ length: Math.ceil(properties.length / 3) }).map((_, index) => (
-                        <button
-                            key={index}
-                            className={`indicator ${currentSlide === index ? 'active' : ''}`}
-                            onClick={() => setCurrentSlide(index)}
-                        ></button>
-                    ))}
+                    </div>
                 </div>
 
                 <div className="carousel-footer">

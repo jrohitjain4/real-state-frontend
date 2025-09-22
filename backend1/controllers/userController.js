@@ -120,7 +120,7 @@ exports.deleteUser = async (req, res) => {
 
 function calculateProfileCompletion(user) {
     const fields = [
-        'phone', 'profilePhoto', 'aadharNumber', 'aadharPhoto',
+        'phoneNumber', 'profilePhoto', 'aadharNumber', 'aadharPhoto',
         'panNumber', 'panPhoto', 'address', 'city', 'state', 'pincode'
     ];
     const filledFields = fields.filter(field => user[field] && user[field] !== '').length;
@@ -131,11 +131,19 @@ exports.getProfileStatus = async (req,res) => {
     try {
         const user = await User.findByPk(req.user.id, {
             attributes: [
-                'id', 'name', 'email', 'profileCompleted', 'kycVerified',
-                'phone', 'address', 'city', 'state', 'pincode',
+                'id', 'firstName', 'lastName', 'email', 'profileCompleted', 'kycVerified',
+                'phoneNumber', 'address', 'city', 'state', 'pincode',
                 'aadharNumber', 'panNumber', 'profilePhoto', 'aadharPhoto', 'panPhoto'
             ]
         }); 
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Check and update profile completion status
+        user.checkProfileCompletion();
+        await user.save();
 
         const completionPercentage = calculateProfileCompletion(user);
         res.json({
@@ -143,11 +151,11 @@ exports.getProfileStatus = async (req,res) => {
             user,
             completionPercentage,
             canPostProperty: user.profileCompleted
-        })
-}catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Server error' });
-        }
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
 };
 
 exports.updateKYCDetails = async (req,res) => {
@@ -156,7 +164,13 @@ exports.updateKYCDetails = async (req,res) => {
     const userId = req.user.id;
      
     const user = await User.findByPk(userId);
-      
+    
+    if (!user) {
+        return res.status(404).json({
+            success: false,
+            message: 'User not found'
+        });
+    }
 
     if (aadharNumber && !/^\d{12}$/.test(aadharNumber)) {
         return res.status(400).json({
@@ -165,15 +179,14 @@ exports.updateKYCDetails = async (req,res) => {
         });
     }
 
-     
-      if (panNumber && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(panNumber)) {
+    if (panNumber && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(panNumber)) {
         return res.status(400).json({
             success: false,
             message: 'Invalid PAN number'
         });
     }
     
-    if (phone) user.phone = phone;
+    if (phone) user.phoneNumber = phone;
     if (aadharNumber) user.aadharNumber = aadharNumber;
     if (panNumber) user.panNumber = panNumber;
     if (address) user.address = address;
@@ -181,19 +194,16 @@ exports.updateKYCDetails = async (req,res) => {
     if (state) user.state = state;
     if (pincode) user.pincode = pincode;
 
-
+    // Check and update profile completion
     user.checkProfileCompletion();
     
     await user.save();
-
 
     res.status(200).json({
         success: true,
         message: 'KYC details updated successfully',
         profileCompleted: user.profileCompleted
     });
-
-
 
    }  catch (err) {
         console.error(err);

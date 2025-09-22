@@ -42,7 +42,7 @@ const PropertyCard = ({ property }) => {
 
   const getMainImage = () => {
     if (images && images.length > 0) {
-      return images[0].imageUrl;
+      return `http://localhost:5000${images[0].imageUrl}`;
     }
     return '/img/portfolio/01-small.jpg'; // fallback image
   };

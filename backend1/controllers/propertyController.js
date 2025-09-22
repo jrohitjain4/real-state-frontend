@@ -38,6 +38,7 @@ exports.createProperty = async (req, res) => {
             builtUpArea,
             carpetArea,
             propertyType,
+            property_for,
             plotArea,
             plotLength,
             plotBreadth,
@@ -138,8 +139,9 @@ exports.createProperty = async (req, res) => {
             pincode,
             latitude: cleanedData.latitude,
             longitude: cleanedData.longitude,
-            status: 'pending',
-            propertyType: actualPropertyType
+            status: 'active',
+            propertyType: actualPropertyType,
+            property_for: property_for || 'residential'
         };
 
 
@@ -215,7 +217,7 @@ exports.createProperty = async (req, res) => {
                     carpetArea: cleanedData.carpetArea
                 });
         }
-        const property = await Property.create(propertyData, { transaction });
+        const property = await Property.create(propertyData);
 
 
         // Create property features if provided
@@ -227,7 +229,7 @@ exports.createProperty = async (req, res) => {
                         propertyId: property.id,
                         ...features
                     },
-                    transaction
+                    // transaction
                 });
             } catch (featureError) {
                 console.error('Error creating property features:', featureError);
@@ -235,7 +237,14 @@ exports.createProperty = async (req, res) => {
             }
         }
 
-        await transaction.commit();
+        // await transaction.commit();
+        
+        console.log('✅ Property created successfully:', {
+            id: property.id,
+            title: property.title,
+            userId: property.userId,
+            status: property.status
+        });
         
         res.status(201).json({
             success: true,
@@ -247,13 +256,13 @@ exports.createProperty = async (req, res) => {
         });
 
     } catch (error) {
-        if (transaction) {
-            try {
-                await transaction.rollback();
-            } catch (rollbackError) {
-                console.error('Error rolling back transaction:', rollbackError);
-            }
-        }
+        // if (transaction) {
+        //     try {
+        //         await transaction.rollback();
+        //     } catch (rollbackError) {
+        //         console.error('Error rolling back transaction:', rollbackError);
+        //     }
+        // }
         
         console.error('=== PROPERTY CREATION ERROR ===');
         console.error('Error creating property:', error);
@@ -319,6 +328,13 @@ exports.uploadPropertyImages = async (req, res) => {
         const { propertyId } = req.params;
         const { imageType = 'other', isPrimary = false } = req.body;
 
+        console.log('🖼️ Image upload request:', {
+            propertyId,
+            userId: req.user?.id,
+            imageType,
+            isPrimary
+        });
+
         // Check if property exists and belongs to user
         const property = await Property.findOne({
             where: { 
@@ -326,6 +342,8 @@ exports.uploadPropertyImages = async (req, res) => {
                 userId: req.user.id
             }
         });
+
+        console.log('🔍 Property lookup result:', property ? 'Found' : 'Not found');
 
         if (!property) {
             return res.status(404).json({
@@ -391,6 +409,7 @@ exports.getAllProperties = async (req, res) => {
             maxPrice,
             bedrooms,
             propertyFor,
+            property_for,
             furnishingStatus,
             possessionStatus,
             search,
@@ -405,8 +424,8 @@ exports.getAllProperties = async (req, res) => {
             status: { [Op.in]: ['active', 'pending'] }
         };
 
-        if (categoryId) where.categoryId = categoryId;
-        if (subCategoryId) where.subCategoryId = subCategoryId;
+        if (categoryId) where.categoryId = parseInt(categoryId);
+        if (subCategoryId) where.subCategoryId = parseInt(subCategoryId);
         if (city) where.city = { [Op.iLike]: `%${city}%` };
         if (minPrice || maxPrice) {
             where.price = {};
@@ -414,6 +433,8 @@ exports.getAllProperties = async (req, res) => {
             if (maxPrice) where.price[Op.lte] = maxPrice;
         }
         if (bedrooms) where.bedrooms = bedrooms;
+        if (propertyFor) where.propertyFor = propertyFor;
+        if (property_for) where.property_for = property_for;
         if (furnishingStatus) where.furnishingStatus = furnishingStatus;
         if (possessionStatus) where.possessionStatus = possessionStatus;
 
@@ -428,6 +449,11 @@ exports.getAllProperties = async (req, res) => {
 
         // Calculate offset
         const offset = (page - 1) * limit;
+
+        // console.log('🔍 Property filtering debug:', {
+        //     queryParams: req.query,
+        //     whereClause: where
+        // });
 
         // Fetch properties
         const { count, rows } = await Property.findAndCountAll({
@@ -605,8 +631,40 @@ exports.getMyProperties = async (req, res) => {
     }
 };
 
+// Get property counts by category and subcategory
+exports.getPropertyCounts = async (req, res) => {
+    try {
+        const { categoryId, subcategoryId } = req.query;
+        
+        const where = {
+            status: { [Op.in]: ['active', 'pending'] }
+        };
+        
+        if (categoryId) where.categoryId = categoryId;
+        if (subcategoryId) where.subCategoryId = subcategoryId;
+        
+        const count = await Property.count({ where });
+        
+        res.json({
+            success: true,
+            data: {
+                count: count,
+                categoryId: categoryId,
+                subcategoryId: subcategoryId
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error fetching property counts:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching property counts'
+        });
+    }
+};
+
 exports.updateProperty = async (req, res) => {
-    const transaction = await db.sequelize.transaction();
+        // const transaction = await db.sequelize.transaction();
     
     try {
         const { id } = req.params;
@@ -648,7 +706,7 @@ exports.updateProperty = async (req, res) => {
             }
         }
 
-        await transaction.commit();
+        // await transaction.commit();
 
         res.json({
             success: true,
@@ -667,7 +725,7 @@ exports.updateProperty = async (req, res) => {
 };
 
 exports.deleteProperty = async (req, res) => {
-    const transaction = await db.sequelize.transaction();
+        // const transaction = await db.sequelize.transaction();
     
     try {
         const { id } = req.params;
@@ -699,7 +757,7 @@ exports.deleteProperty = async (req, res) => {
         // Delete property (cascade will delete related records)
         await property.destroy({ transaction });
 
-        await transaction.commit();
+        // await transaction.commit();
 
         res.json({
             success: true,

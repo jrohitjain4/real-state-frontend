@@ -59,6 +59,55 @@ module.exports = (sequelize, Sequelize) => {
         lastLogin: {
             type: Sequelize.DATE,
             allowNull: true
+        },
+        // KYC and Profile fields
+        profilePhoto: {
+            type: Sequelize.STRING,
+            allowNull: true
+        },
+        aadharNumber: {
+            type: Sequelize.STRING(12),
+            allowNull: true
+        },
+        aadharPhoto: {
+            type: Sequelize.STRING,
+            allowNull: true
+        },
+        panNumber: {
+            type: Sequelize.STRING(10),
+            allowNull: true
+        },
+        panPhoto: {
+            type: Sequelize.STRING,
+            allowNull: true
+        },
+        address: {
+            type: Sequelize.TEXT,
+            allowNull: true
+        },
+        city: {
+            type: Sequelize.STRING,
+            allowNull: true
+        },
+        state: {
+            type: Sequelize.STRING,
+            allowNull: true
+        },
+        pincode: {
+            type: Sequelize.STRING(6),
+            allowNull: true
+        },
+        profileCompleted: {
+            type: Sequelize.BOOLEAN,
+            defaultValue: false
+        },
+        kycVerified: {
+            type: Sequelize.BOOLEAN,
+            defaultValue: false
+        },
+        profileCompletedAt: {
+            type: Sequelize.DATE,
+            allowNull: true
         }
     }, {
         tableName: 'users'
@@ -74,8 +123,18 @@ module.exports = (sequelize, Sequelize) => {
 
     // Method to check profile completion
     User.prototype.checkProfileCompletion = function() {
-        const requiredFields = ['phoneNumber'];
+        // Check all required KYC fields for profile completion
+        const requiredFields = [
+            'phoneNumber', 'address', 'city', 'state', 'pincode',
+            'aadharNumber', 'panNumber'
+        ];
         const isComplete = requiredFields.every(field => this[field] !== null && this[field] !== '');
+        
+        // Update the profileCompleted field
+        this.profileCompleted = isComplete;
+        if (isComplete && !this.profileCompletedAt) {
+            this.profileCompletedAt = new Date();
+        }
         
         return isComplete;
     };

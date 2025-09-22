@@ -124,7 +124,7 @@ const MyProperties = () => {
                             <div key={property.id} className="property-item">
                                 <div className="property-image">
                                     <img 
-                                        src={property.images?.[0]?.imageUrl || '/default-property.jpg'} 
+                                        src={property.images?.[0]?.imageUrl ? `http://localhost:5000${property.images[0].imageUrl}` : '/default-property.jpg'} 
                                         alt={property.title} 
                                     />
                                 </div>
