@@ -4,69 +4,105 @@ import { useNavigate } from 'react-router-dom';
 import { propertyCategoriesAPI } from '../../../api/propertyCategories';
 import './PropertyCategories.css';
 
-// Importing icons from react-icons
+// Import Swiper React components
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay, Navigation, Pagination, EffectFade } from 'swiper/modules';
+
+// Import Swiper styles
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import 'swiper/css/effect-fade';
+
+// Importing icons - added FaWarehouse and MdOutlineVilla
 import {
   BsBuilding,
   BsHouseDoor,
-  BsEnvelope,
   BsBriefcase,
   BsShop,
-  BsArchive
+  BsArchive,
+  BsTextarea
 } from 'react-icons/bs';
 import { GiHouse } from 'react-icons/gi';
 import { IoBedOutline } from 'react-icons/io5';
+import { FaWarehouse } from 'react-icons/fa'; // <-- New Icon for Warehouse
+import { MdOutlineVilla } from 'react-icons/md'; // <-- New Icon for Penthouse
 
-// Property categories with updated icons and data to match the image
+// Property categories array with new additions
 const propertyCategories = [
   {
     id: 'storage',
     name: 'Storage',
     icon: <BsArchive />,
-    categoryId: 4, // Sell category (since Buy navigation shows Sell properties)
-    subcategoryName: 'Godown' // Match the actual subcategory name in database
+    categoryId: 4,
+    subcategoryName: 'Godown'
   },
   {
     id: 'flats',
     name: 'Flats',
     icon: <BsBuilding />,
-    categoryId: 4, // Sell category
+    categoryId: 4,
     subcategoryName: 'Flats'
+  },
+  // --- NEW CATEGORY: PENTHOUSE ---
+  {
+    id: 'penthouse',
+    name: 'Penthouse',
+    icon: <MdOutlineVilla />,
+    categoryId: 4, 
+    subcategoryName: 'Penthouse' // Ensure this matches your backend subcategory
   },
   {
     id: 'farmhouse',
     name: 'Farmhouse',
     icon: <GiHouse />,
-    categoryId: 4, // Sell category
+    categoryId: 4,
     subcategoryName: 'Farmhouse'
   },
   {
     id: 'plot',
     name: 'Plot / Land',
-    icon: <BsEnvelope />,
-    categoryId: 4, // Sell category
+    icon: <BsTextarea />,
+    categoryId: 4,
     subcategoryName: 'Plot/Land'
   },
   {
     id: 'pg',
     name: 'PG / Co Living',
     icon: <IoBedOutline />,
-    categoryId: 3, // Rent category
+    categoryId: 3,
     subcategoryName: 'PG/Coliving'
   },
   {
     id: 'villa',
     name: 'Houses / Villa',
     icon: <BsHouseDoor />,
-    categoryId: 4, // Sell category
+    categoryId: 4,
     subcategoryName: 'House'
   },
   {
     id: 'office',
     name: 'Offices',
     icon: <BsBriefcase />,
-    categoryId: 4, // Sell category
+    categoryId: 4,
     subcategoryName: 'Offices'
-  }];
+  },
+  {
+    id: 'shops',
+    name: 'Retail / Shops',
+    icon: <BsShop />,
+    categoryId: 4,
+    subcategoryName: 'Shop/Showroom'
+  },
+  // --- NEW CATEGORY: WAREHOUSE ---
+  {
+    id: 'warehouse',
+    name: 'Warehouse',
+    icon: <FaWarehouse />,
+    categoryId: 4,
+    subcategoryName: 'Warehouse' // Ensure this matches your backend subcategory
+  }
+];
 
 
 const PropertyCategories = () => {
@@ -74,10 +110,8 @@ const PropertyCategories = () => {
   const [propertyCounts, setPropertyCounts] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  // State to track the active category, default to 'flats' as in the image
   const [activeCategory, setActiveCategory] = useState('flats');
 
-  // Fetch property counts from backend
   useEffect(() => {
     const fetchPropertyCounts = async () => {
       try {
@@ -101,11 +135,9 @@ const PropertyCategories = () => {
   }, []);
 
   const handleCategoryClick = async (category) => {
-    // Set the clicked category as active
     setActiveCategory(category.id);
     
     try {
-      // Get subcategory ID from backend
       const response = await fetch('http://localhost:5000/api/categories');
       const data = await response.json();
       
@@ -114,17 +146,13 @@ const PropertyCategories = () => {
         if (categoryData && categoryData.subcategories) {
           const subcategory = categoryData.subcategories.find(sub => sub.name === category.subcategoryName);
           if (subcategory) {
-            // Navigate to properties page with category filter
             const queryParams = new URLSearchParams();
             queryParams.set('category', category.categoryId);
             queryParams.set('subcategory', subcategory.id);
             
-            // Determine property_for based on subcategory
             let propertyFor = 'residential';
-            if (subcategory.propertyType === 'commercial' || 
-                subcategory.propertyType === 'commercial-land' ||
-                subcategory.name.toLowerCase().includes('godown') ||
-                subcategory.name.toLowerCase().includes('land')) {
+            if (['commercial', 'commercial-land'].includes(subcategory.propertyType) || 
+                ['godown', 'land', 'warehouse'].some(term => subcategory.name.toLowerCase().includes(term))) {
               propertyFor = 'commercial';
             }
             queryParams.set('property_for', propertyFor);
@@ -135,13 +163,11 @@ const PropertyCategories = () => {
         }
       }
       
-      // Fallback navigation without subcategory
       const queryParams = new URLSearchParams();
       queryParams.set('category', category.categoryId);
       navigate(`/properties?${queryParams.toString()}`);
     } catch (error) {
       console.error('Error fetching subcategory:', error);
-      // Fallback navigation
       const queryParams = new URLSearchParams();
       queryParams.set('category', category.categoryId);
       navigate(`/properties?${queryParams.toString()}`);
@@ -152,7 +178,7 @@ const PropertyCategories = () => {
     <div className="property-categories-section">
       <div className="container">
         <div className="section-header">
-          <h2>Top Property Listings in India</h2>
+          <h2>TOP PROPERTY LISTINGS IN INDIA</h2>
           <p>
             <span className="highlight">Verified, Trusted</span> & Ready for You!
           </p>
@@ -163,26 +189,77 @@ const PropertyCategories = () => {
             <p>Unable to load property counts. Please try again later.</p>
           </div>
         ) : (
-          <div className="property-categories-container">
-            {propertyCategories.map((category) => (
-              <div 
-                key={category.id}
-                className={`property-category-card ${activeCategory === category.id ? 'active' : ''}`}
-                onClick={() => handleCategoryClick(category)}
-              >
-                <div className="category-icon">
-                  {category.icon}
-                </div>
-                <h3 className="category-name">{category.name}</h3>
-                <p className="category-count">
-                  {loading ? (
-                    '...'
-                  ) : (
-                    `(${propertyCounts[category.id] || 0})`
-                  )}
-                </p>
-              </div>
-            ))}
+          <div className="property-categories-carousel">
+            <Swiper
+              modules={[Autoplay, Navigation, Pagination]}
+              spaceBetween={20}
+              slidesPerView="auto"
+              centeredSlides={false}
+              loop={true}
+              speed={800}
+              autoplay={{
+                delay: 1000,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: false,
+                reverseDirection: false,
+              }}
+              navigation={{
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+              }}
+              pagination={{
+                el: '.swiper-pagination',
+                clickable: true,
+                dynamicBullets: true,
+              }}
+              breakpoints={{
+                320: {
+                  slidesPerView: 2,
+                  spaceBetween: 15,
+                },
+                480: {
+                  slidesPerView: 3,
+                  spaceBetween: 15,
+                },
+                768: {
+                  slidesPerView: 4,
+                  spaceBetween: 20,
+                },
+                1024: {
+                  slidesPerView: 5,
+                  spaceBetween: 20,
+                },
+                1200: {
+                  slidesPerView: 6,
+                  spaceBetween: 20,
+                },
+              }}
+              className="property-categories-swiper"
+            >
+              {propertyCategories.map((category) => (
+                <SwiperSlide key={category.id} className="category-slide">
+                  <div 
+                    className={`property-category-card ${activeCategory === category.id ? 'active' : ''}`}
+                    onClick={() => handleCategoryClick(category)}
+                  >
+                    <div className="category-icon">
+                      {category.icon}
+                    </div>
+                    <div className="category-text-content">
+                      <h3 className="category-name">{category.name}</h3>
+                      <p className="category-count">
+                        ({loading ? '...' : propertyCounts[category.id] || 0})
+                      </p>
+                    </div>
+                  </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+            
+           
+            
+            {/* Pagination */}
+            <div className="swiper-pagination"></div>
           </div>
         )}
       </div>

@@ -59,9 +59,14 @@ exports.createProperty = async (req, res) => {
             // Additional fields
             zoning,
             approvedUse,
-            features
+            features,
+            // Ownership
+            ownershipType
 
         } = req.body;
+
+        console.log('🔍 Backend received ownershipType:', ownershipType);
+        console.log('🔍 Full request body:', JSON.stringify(req.body, null, 2));
 
         // Clean up numeric fields - convert empty strings to null
         const cleanNumericField = (value) => {
@@ -141,7 +146,8 @@ exports.createProperty = async (req, res) => {
             longitude: cleanedData.longitude,
             status: 'active',
             propertyType: actualPropertyType,
-            property_for: property_for || 'residential'
+            property_for: property_for || 'residential',
+            ownershipType: ownershipType || 'owner'
         };
 
 
@@ -458,6 +464,7 @@ exports.getAllProperties = async (req, res) => {
         // Fetch properties
         const { count, rows } = await Property.findAndCountAll({
             where,
+            attributes: { exclude: [] }, // Include all attributes including ownershipType
             include: [
                 {
                     model: Category,
@@ -520,6 +527,7 @@ exports.getPropertyBySlug = async (req, res) => {
 
         const property = await Property.findOne({
             where: { slug, status: 'active' },
+            attributes: { exclude: [] }, // Include all attributes including ownershipType
             include: [
                 {
                     model: Category,

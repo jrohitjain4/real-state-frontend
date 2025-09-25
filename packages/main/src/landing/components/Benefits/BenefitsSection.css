@@ -1,0 +1,148 @@
+/* src/components/BenefitsSection.css */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+/* --- FIX #1: Add position:relative and overflow:hidden --- */
+.benefits-section {
+    background-color: #111827;
+    padding: 80px 20px 120px; /* Increased bottom padding to make space for the visible part of images */
+    color: #D1D5DB;
+    font-family: 'Poppins', sans-serif;
+    position: relative; /* This is crucial for positioning the gallery */
+    overflow: hidden; /* This is crucial to hide the rest of the gallery and prevent scrollbars */
+    height:825px;
+}
+
+.benefits-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+/* --- Header Styling (No Change) --- */
+.benefits-header {
+    margin-bottom: 60px;
+}
+
+.benefits-title {
+    font-size: 2.25rem;
+    font-weight: 600;
+    color: #FFFFFF;
+    margin: 0 0 15px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+.benefits-title span { color: #2DD4BF; }
+.benefits-subtitle {
+    font-size: 1rem;
+    color: #9CA3AF;
+    max-width: 600px;
+    margin: 0 auto;
+}
+.wavy-line.mirrored { transform: scaleX(-1); }
+
+/* --- Benefits Grid Styling (No Change) --- */
+.benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+    text-align: left;
+}
+.benefit-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+.benefit-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #1F2937;
+    border: 2px solid #374151;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+.benefit-icon i { color: #2DD4BF; font-size: 1.25rem; }
+.benefit-item-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #FFFFFF;
+    margin: 0 0 10px 0;
+}
+.benefit-item-description {
+    font-size: 0.95rem;
+    color: #9CA3AF;
+    line-height: 1.6;
+    margin: 0;
+}
+
+
+/* --- FIX #2: Position the entire gallery absolutely at the bottom --- */
+.gallery-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    
+    position: absolute; /* Take it out of the normal document flow */
+    bottom: -100px; /* Push it down to hide 75% (image height is 350px) */
+    left: 50%;
+    transform: translateX(-50%); /* Center it horizontally */
+    width: 100%;
+    padding: 0 20px;
+}
+
+
+.gallery-image-wrapper {
+    width: 280px;
+    height: 350px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 4px solid #FFFFFF;
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    z-index: 1;
+}
+
+.gallery-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Applying overlap and unique rotation to each image (No Change) */
+.gallery-image-wrapper:not(:first-child) {
+    margin-left: -80px;
+}
+.gallery-image-wrapper:nth-child(1) { transform: rotate(-8deg); z-index: 1; }
+.gallery-image-wrapper:nth-child(2) { transform: rotate(-3deg); z-index: 2; }
+.gallery-image-wrapper:nth-child(3) { transform: rotate(2deg);  z-index: 3; }
+.gallery-image-wrapper:nth-child(4) { transform: rotate(6deg);  z-index: 4; }
+.gallery-image-wrapper:nth-child(5) { transform: rotate(-4deg); z-index: 2; }
+.gallery-image-wrapper:nth-child(6) { transform: rotate(5deg);  z-index: 1; }
+
+
+/* --- FIX #3: Make the hover effect much stronger to bring the image fully up --- */
+.gallery-image-wrapper:hover {
+    /* Move the hovered image UP to become 100% visible */
+    transform: translateY(-260px) rotate(0deg) !important;
+    z-index: 10 !important;
+}
+
+
+/* --- Responsive Design (No Change) --- */
+@media (max-width: 1024px) {
+    .benefits-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .benefits-section { padding-bottom: 80px; }
+    .benefits-title { font-size: 1.8rem; flex-direction: column; }
+    .wavy-line { display: none; }
+    .benefits-grid { grid-template-columns: 1fr; }
+    .gallery-container { bottom: -280px; } /* Adjust for mobile */
+}

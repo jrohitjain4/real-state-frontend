@@ -41,7 +41,6 @@
     justify-content: center;
     gap: 0;
     margin-bottom: 30px;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
   }
   
   .tab-button {
@@ -57,30 +56,43 @@
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
   }
   
-  .tab-button:hover {
-    color: #ffffff;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-  }
-  
-  .tab-button.active {
-    color: #ff6b35;
-    font-weight: 600;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-  }
-  /* Continuing PropertySearchFilter.css */
+/* START: Use this new block */
+.tab-button:hover {
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
 
-.tab-button.active::after {
+/* This is the style for the active tab (orange text) - NO underline here */
+.tab-button.active {
+  color: #ff6b35;
+  font-weight: 600;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+/* Prepare the underline for all tabs, but keep it hidden */
+.tab-button::after {
   content: '';
   position: absolute;
   bottom: -2px;
   left: 0;
-  right: 0;
+  width: 100%;
   height: 3px;
   background-color: #ff6b35;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  
+  /* Initially scaled to zero width */
+  transform: scaleX(0);
+  transform-origin: left; /* Animation grows from the left */
+  
+  /* The animation "slow slow" part */
+  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* Search Filters Container */
+/* ONLY on hover, animate the line to full width */
+.tab-button:hover::after {
+  transform: scaleX(1);
+}
+/* END: Use this new block */
 .search-filters {
   display: flex;
   gap: 15px;

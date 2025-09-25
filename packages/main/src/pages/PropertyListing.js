@@ -62,11 +62,16 @@ const PropertyListing = () => {
             const data = await response.json();
             
             if (data.success) {
-                setProperties(data.data.properties);
-                setPagination(data.data.pagination);
+                setProperties(data.data.properties || data.data || []);
+                setPagination(data.data.pagination || { total: 0, page: 1, totalPages: 0, limit: 12 });
+            } else {
+                setProperties([]);
+                setPagination({ total: 0, page: 1, totalPages: 0, limit: 12 });
             }
         } catch (error) {
             console.error('Error fetching properties:', error);
+            setProperties([]);
+            setPagination({ total: 0, page: 1, totalPages: 0, limit: 12 });
         } finally {
             setLoading(false);
         }
@@ -176,7 +181,9 @@ const PropertyListing = () => {
                                                 <div className="view-images-overlay">View More Images</div>
                                             </div>
                                             <div className="card-owner-section">
-                                                <div className="owner-name">Owner : <strong>{property.owner?.name || 'N/A'}</strong></div>
+                                                <div className="owner-name">
+                                                    {property.ownershipType === 'agent' ? 'Agent' : 'Owner'} : <strong>{property.owner ? `${property.owner.firstName} ${property.owner.lastName}` : 'N/A'}</strong>
+                                                </div>
                                                 <div className="premium-badge-mb"><i className="fas fa-star"></i> Premium Member</div>
                                                 <div className="posted-time">{formatDatePosted(property.createdAt)}</div>
                                             </div>

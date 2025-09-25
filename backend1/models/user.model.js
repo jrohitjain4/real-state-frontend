@@ -31,7 +31,7 @@ module.exports = (sequelize, Sequelize) => {
             allowNull: false
         },
         role: {
-            type: Sequelize.ENUM('user', 'admin'),
+            type: Sequelize.ENUM('user', 'admin', 'agent'),
             defaultValue: 'user'
         },
         phoneNumber: {

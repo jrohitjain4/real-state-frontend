@@ -1,126 +1,185 @@
+// PropertyCarousel.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, A11y } from 'swiper/modules';
+import { Navigation, A11y } from 'swiper/modules';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
-import 'swiper/css/pagination';
-
 import './PropertyCarousel.css';
 
+// --- NEW, RELIABLE IMAGE URLS THAT WILL NOT BREAK ---
 const featuredProperties = [
     {
-        id: 1, slug: 'luxurious-sea-view-apartment', title: 'Luxurious Sea View Apartment', price: 35000000, category: { name: 'Apartment' },
-        images: [{ imageUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=870&q=80' }],
-        locality: 'Bandra West', city: 'Mumbai', bedrooms: 3, bathrooms: 3, superArea: 1800,
+        id: 1,
+        slug: 'grand-villa-house',
+        title: 'Grand Villa House',
+        // Reliable Unsplash URL
+        imageUrl: 'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?auto=format&fit=crop&w=870&q=80',
+        price: 1370,
+        tags: [{ text: 'Featured', type: 'featured' }],
+        rating: 4.9,
+        reviews: 25,
+        location: '10, Oak Ridge Villa, USA',
+        bedrooms: 4,
+        bathrooms: 3,
+        area: 520,
+        listedDate: '28 Apr 2025',
+        category: 'Villa',
+        agent: {
+            // Using a reliable placeholder for agent avatar
+            avatarUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
+        }
     },
     {
-        id: 2, slug: 'modern-independent-villa', title: 'Modern Independent Villa', price: 52500000, category: { name: 'Villa' },
-        images: [{ imageUrl: 'https://images.unsplash.com/photo-1600585152220-90363fe7e115?ixlib=rb-4.0.3&auto=format&fit=crop&w=870&q=80' }],
-        locality: 'Jubilee Hills', city: 'Hyderabad', bedrooms: 4, bathrooms: 5, superArea: 3200,
+        id: 2,
+        slug: 'elite-suite-room',
+        title: 'Elite Suite Room',
+        // Reliable Unsplash URL
+        imageUrl: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=870&q=80',
+        price: 2470,
+        tags: [],
+        rating: 4.4,
+        reviews: 79,
+        location: '42, Maple Grove Residences, USA',
+        bedrooms: 2,
+        bathrooms: 1,
+        area: 480,
+        listedDate: '14 Apr 2025',
+        category: 'Suite',
+        agent: {
+            avatarUrl: 'https://randomuser.me/api/portraits/women/17.jpg',
+        }
     },
     {
-        id: 3, slug: 'cozy-2bhk-flat-in-city-center', title: 'Cozy 2BHK Flat in City Center', price: 8500000, category: { name: 'Flat' },
-        images: [{ imageUrl: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=870&q=80' }],
-        locality: 'Indiranagar', city: 'Bangalore', bedrooms: 2, bathrooms: 2, superArea: 1250,
+        id: 3,
+        slug: 'serenity-condo-suite',
+        title: 'Serenity Condo Suite',
+        // Reliable Unsplash URL
+        imageUrl: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=870&q=80',
+        price: 21000,
+        tags: [{ text: 'New', type: 'new' }, { text: 'Featured', type: 'featured' }],
+        rating: 5.0,
+        reviews: 20,
+        location: '17, Grove Towers, New York, USA',
+        bedrooms: 4,
+        bathrooms: 4,
+        area: 350,
+        listedDate: '16 Jan 2023',
+        category: 'Apartment',
+        agent: {
+            avatarUrl: 'https://randomuser.me/api/portraits/men/32.jpg',
+        }
     },
     {
-        id: 4, slug: 'spacious-penthouse-with-terrace', title: 'Spacious Penthouse with Terrace', price: 78000000, category: { name: 'Penthouse' },
-        images: [{ imageUrl: 'https://images.unsplash.com/photo-1594411998064-897e085a6331?ixlib=rb-4.0.3&auto=format&fit=crop&w=774&q=80' }],
-        locality: 'DLF Phase 5', city: 'Gurgaon', bedrooms: 5, bathrooms: 6, superArea: 4500,
-    },
-    {
-        id: 5, slug: 'ready-to-move-in-studio-apartment', title: 'Ready to Move-in Studio', price: 5500000, category: { name: 'Studio' },
-        images: [{ imageUrl: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=870&q=80' }],
-        locality: 'Hinjewadi', city: 'Pune', bedrooms: 1, bathrooms: 1, superArea: 650,
-    },
-    {
-        id: 6, slug: 'farmhouse-with-private-pool', title: 'Farmhouse with Private Pool', price: 95000000, category: { name: 'Farmhouse' },
-        images: [{ imageUrl: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?ixlib=rb-4.0.3&auto=format&fit=crop&w=774&q=80' }],
-        locality: 'Ecr Road', city: 'Chennai', bedrooms: 4, bathrooms: 4, superArea: 5500,
+        id: 4,
+        slug: 'modern-downtown-loft',
+        title: 'Modern Downtown Loft',
+        // Reliable Unsplash URL
+        imageUrl: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=870&q=80',
+        price: 3200,
+        tags: [{ text: 'Hot', type: 'new' }],
+        rating: 4.7,
+        reviews: 45,
+        location: '112, Urban Center, LA, USA',
+        bedrooms: 1,
+        bathrooms: 1,
+        area: 400,
+        listedDate: '05 May 2024',
+        category: 'Loft',
+        agent: {
+            avatarUrl: 'https://randomuser.me/api/portraits/men/46.jpg',
+        }
     },
 ];
 
+const formatPrice = (price) => `$${price.toLocaleString('en-US')}`;
+
 const PropertyCarousel = () => {
-    
-    const formatPrice = (price) => {
-        if (price >= 10000000) return `₹${(price / 10000000).toFixed(2)} Cr`;
-        if (price >= 100000) return `₹${(price / 100000).toFixed(2)} Lac`;
-        return `₹${price.toLocaleString('en-IN')}`;
-    };
-    
     return (
-        <section className="property-carousel-section">
+        <section className="featured-properties-section">
             <div className="container">
-                <div className="carousel-header">
-                    <h2>Featured Properties</h2>
-                    <p>Handpicked properties from our exclusive portfolio</p>
-                </div>
                 
-                {/* --- WRAPPER FOR SWIPER AND NAVIGATION --- */}
-                <div className="carousel-wrapper">
+                <div className="carousel-header">
+                    <div className="header-text">
+                        <h2>Featured Properties for Sales</h2>
+                        <p>Hand-picked selection of quality places</p>
+                    </div>
+                    <div className="swiper-navigation">
+                        <div className="swiper-nav-button swiper-button-prev-custom">
+                            <i className="fas fa-arrow-left"></i>
+                        </div>
+                        <div className="swiper-nav-button swiper-button-next-custom">
+                            <i className="fas fa-arrow-right"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="swiper-container-wrapper">
                     <Swiper
-                        modules={[Navigation, Pagination, A11y]}
+                        modules={[Navigation, A11y]}
                         spaceBetween={30}
                         slidesPerView={1}
                         navigation={{
                             nextEl: '.swiper-button-next-custom',
                             prevEl: '.swiper-button-prev-custom',
                         }}
-                        pagination={{ clickable: true }}
                         loop={true}
                         breakpoints={{
-                            640: { slidesPerView: 2, spaceBetween: 20 },
-                            1024: { slidesPerView: 3, spaceBetween: 30 },
+                            768: { slidesPerView: 2 },
+                            1024: { slidesPerView: 3 },
                         }}
                         className="property-swiper"
                     >
                         {featuredProperties.map((property) => (
                             <SwiperSlide key={property.id}>
-                                {/* --- VERTICAL CARD STRUCTURE --- */}
-                                <div className="property-card-vertical">
-                                    <div className="property-image-wrapper">
-                                        <img src={property.images[0]?.imageUrl} alt={property.title} className="property-image" />
-                                        <div className="property-badge">{property.category?.name}</div>
-                                    </div>
-                                    <div className="property-content">
-                                        <div className="property-info-main">
-                                            <h3 className="property-title">{property.title}</h3>
-                                            <div className="property-location">
-                                                <i className="fas fa-map-marker-alt"></i>
-                                                {property.locality}, {property.city}
+                                <div className="property-card">
+                                    <div className="property-image-container">
+                                        <img src={property.imageUrl} alt={property.title} className="property-image" />
+                                        <div className="image-overlays">
+                                            <div className="top-overlays">
+                                                <div className="tags-container">
+                                                    {property.tags.map((tag, index) => (
+                                                        <span key={index} className={`tag ${tag.type}`}>
+                                                            {tag.type === 'featured' && <i className="fas fa-star"></i>}
+                                                            {tag.type === 'new' && <i className="fas fa-fire"></i>}
+                                                            {tag.text}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                                <button className="wishlist-btn"><i className="far fa-heart"></i></button>
                                             </div>
-                                            <div className="property-features">
-                                                <span className="feature"><i className="fas fa-ruler-combined"></i> {property.superArea} sqft</span>
-                                                <span className="feature"><i className="fas fa-bed"></i> {property.bedrooms} Bed</span>
-                                                <span className="feature"><i className="fas fa-bath"></i> {property.bathrooms} Bath</span>
+                                            <div className="bottom-overlays">
+                                                <span className="property-price">{formatPrice(property.price)}</span>
+                                                <img src={property.agent.avatarUrl} alt="Agent" className="agent-avatar" />
                                             </div>
                                         </div>
+                                    </div>
+                                    <div className="property-details">
+                                        <div className="reviews">
+                                            <i className="fas fa-star"></i> {property.rating.toFixed(1)}
+                                            <span>({property.reviews} Reviews)</span>
+                                        </div>
+                                        <h3 className="property-title">
+                                            <Link to={`/property/${property.slug}`}>{property.title}</Link>
+                                        </h3>
+                                        <p className="property-location">
+                                            <i className="fas fa-map-marker-alt"></i> {property.location}
+                                        </p>
+                                        <div className="property-specs">
+                                            <span className="spec"><i className="fas fa-bed"></i> {property.bedrooms} Bedroom</span>
+                                            <span className="spec"><i className="fas fa-bath"></i> {property.bathrooms} Bath</span>
+                                            <span className="spec"><i className="fas fa-ruler-combined"></i> {property.area} Sq Ft</span>
+                                        </div>
                                         <div className="property-footer">
-                                            <div className="property-price">{formatPrice(property.price)}</div>
-                                            <Link to={`/property/${property.slug}`} className="view-property-btn">Details</Link>
+                                            <span>Listed on : {property.listedDate}</span>
+                                            <span>Category : {property.category}</span>
                                         </div>
                                     </div>
                                 </div>
                             </SwiperSlide>
                         ))}
                     </Swiper>
-                    
-                    {/* --- CUSTOM NAVIGATION BUTTONS --- */}
-                    <div className="swiper-button-prev-custom">
-                        <i className="fas fa-chevron-left"></i>
-                    </div>
-                    <div className="swiper-button-next-custom">
-                        <i className="fas fa-chevron-right"></i>
-                    </div>
-                </div>
-
-                <div className="carousel-footer">
-                    <Link to="/properties" className="view-all-btn">
-                        View All Properties
-                        <i className="fas fa-arrow-right"></i>
-                    </Link>
                 </div>
             </div>
         </section>

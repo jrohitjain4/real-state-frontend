@@ -28,8 +28,8 @@ const validateRegistration = [
         .withMessage('Password must be at least 6 characters long'),
     
     body('role')
-        .isIn(['user', 'admin'])
-        .withMessage('Role must be either "user" or "admin"')
+        .isIn(['user', 'admin', 'agent'])
+        .withMessage('Role must be either "user", "admin", or "agent"')
 ];
 
 // Validation rules for user login
@@ -126,8 +126,8 @@ const validateUserUpdate = [
     
     body('role')
         .optional()
-        .isIn(['user', 'admin'])
-        .withMessage('Role must be either "user" or "admin"')
+        .isIn(['user', 'admin', 'agent'])
+        .withMessage('Role must be either "user", "admin", or "agent"')
 ];
 
 // Middleware to check validation results

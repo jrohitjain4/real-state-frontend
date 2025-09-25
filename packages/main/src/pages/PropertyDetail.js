@@ -208,10 +208,11 @@ const PropertyDetail = () => {
                         <div className="owner-info">
                             <img 
                                 src={property.owner.profilePhoto || '/default-avatar.png'} 
-                                alt={property.owner.name} 
+                                alt={`${property.owner.firstName} ${property.owner.lastName}`} 
                             />
                             <div>
-                                <h4>{property.owner.name}</h4>
+                                <h4>{`${property.owner.firstName} ${property.owner.lastName}`}</h4>
+                                <p>{property.ownershipType === 'agent' ? 'Real Estate Agent' : 'Property Owner'}</p>
                                 <p>Member since {new Date(property.owner.createdAt).getFullYear()}</p>
                             </div>
                         </div>

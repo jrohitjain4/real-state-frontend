@@ -3,23 +3,19 @@ import { useNavigate } from "react-router-dom";
 import { LocationProvider } from "../contexts/LocationContext";
 import { Navigation } from "../landing/components/navigation";
 import { Header } from "../landing/components/header";
-import PropertyListing from "../landing/components/PropertyListing/PropertyListing";
 import PropertyCategories from "../landing/components/PropertyCategories/PropertyCategories";
 import PropertyCarousel from "../landing/components/PropertyCarousel/PropertyCarousel";
-import { Features } from "../landing/components/features";
-import { About } from "../landing/components/about";
-import { Services } from "../landing/components/services";
-import { Gallery } from "../landing/components/gallery";
-import { Testimonials } from "../landing/components/testimonials";
-import { Team } from "../landing/components/Team";
-import { Contact } from "../landing/components/contact";
+
 import JsonData from "../landing/data/data.json";
 import SmoothScroll from "smooth-scroll";
-
+import CityProperties from "../landing/components/CITES/CityProperties";
+  import BenefitsSection from "../landing/components/Benefits/BenefitsSection";
+import ContactPage from "../landing/components/Contact/ContactPage";
+import Footer from "../landing/components/Footer/Footer";
 export const scroll = new SmoothScroll('a[href*="#"]', {
   speed: 1000,
   speedAsDuration: true,
-});
+}); 
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -94,16 +90,16 @@ const LandingPage = () => {
         <Header onSearch={handleSearch} />
         <PropertyCategories />
         <section id="property-listing" className="property-section">
-          <PropertyListing searchFilters={searchFilters} />
+          <CityProperties />
         </section>
+
         <PropertyCarousel />
-        <Features data={landingPageData.Features} />
-        <About data={landingPageData.About} />
-        <Services data={landingPageData.Services} />
-        <Gallery data={landingPageData.Gallery} />
-        <Testimonials data={landingPageData.Testimonials} />
-        <Team data={landingPageData.Team} />
-        <Contact data={landingPageData.Contact} />
+        <BenefitsSection />
+       
+        
+        
+         <ContactPage />
+         <Footer />
       </div>
     </LocationProvider>
   );

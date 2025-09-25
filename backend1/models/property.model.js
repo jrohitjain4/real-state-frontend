@@ -166,7 +166,7 @@ module.exports = (sequelize, Sequelize) => {
             allowNull: false
         },
         ownershipType: {
-            type: Sequelize.ENUM('owner', 'dealer', 'builder'),
+            type: Sequelize.ENUM('owner', 'dealer', 'builder', 'agent'),
             defaultValue: 'owner'
         },
         

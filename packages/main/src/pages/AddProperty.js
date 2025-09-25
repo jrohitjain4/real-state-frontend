@@ -11,6 +11,7 @@ const AddProperty = () => {
     const [subcategories, setSubcategories] = useState([]);
     const [loading, setLoading] = useState(false);
     const [selectedPropertyType, setSelectedPropertyType] = useState('residential');
+    const [currentUser, setCurrentUser] = useState(null);
     
     // Dynamic property data state based on property type
     const [propertyData, setPropertyData] = useState({
@@ -98,6 +99,7 @@ const AddProperty = () => {
             return;
         }
         
+        fetchCurrentUser();
         fetchCategories();
         checkProfileCompletion();
     }, [navigate]);
@@ -145,6 +147,24 @@ const AddProperty = () => {
             ...prev,
             features: newFeatures
         }));
+    };
+
+    const fetchCurrentUser = async () => {
+        try {
+            const response = await fetch('http://localhost:5000/api/data/profile-status', {
+                headers: {
+                    'x-auth-token': localStorage.getItem('token')
+                }
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                setCurrentUser(data.user);
+                // Don't auto-set ownership type, let user choose
+            }
+        } catch (error) {
+            console.error('Error fetching user:', error);
+        }
     };
 
     const checkProfileCompletion = async () => {
@@ -618,6 +638,9 @@ const AddProperty = () => {
                 break;
                 
             case 4:
+                if (!propertyData.ownershipType) {
+                    newErrors.ownershipType = 'Please select your relationship to this property';
+                }
                 if (images.length === 0) {
                     newErrors.images = 'At least one image is required';
                 }
@@ -697,6 +720,7 @@ const AddProperty = () => {
         
         try {
             console.log('🚀 Submitting property with payload:', propertyPayload);
+            console.log('🔍 Ownership Type being sent:', propertyPayload.ownershipType);
             
             // First create property
             const response = await fetch('http://localhost:5000/api/properties', {
@@ -1075,10 +1099,40 @@ const AddProperty = () => {
                     {/* Step 4: Images */}
                     {step === 4 && (
                         <div className="form-step">
-                            <h3>Property Images</h3>
-                            <p className="step-description">Add photos of your property (Max 10 images, 5MB each)</p>
+                            <h3>Property Images & Ownership</h3>
                             
-                            <div className="image-upload-section">
+                            {/* Ownership Type Section */}
+                            <div className="form-section">
+                                <h4>Ownership Details</h4>
+                                <div className="form-group">
+                                    <label>I am posting this property as *</label>
+                                    <select
+                                        name="ownershipType"
+                                        value={propertyData.ownershipType}
+                                        onChange={handleInputChange}
+                                        className={errors.ownershipType ? 'error' : ''}
+                                    >
+                                        <option value="">Select your role for this property</option>
+                                        <option value="owner">Property Owner</option>
+                                        <option value="dealer">Property Dealer</option>
+                                        <option value="builder">Builder/Developer</option>
+                                        <option value="agent">Real Estate Agent</option>
+                                    </select>
+                                    {errors.ownershipType && <span className="error-message">{errors.ownershipType}</span>}
+                                    <small>
+                                        {currentUser && currentUser.role === 'agent' 
+                                            ? "As an agent, you can post properties as owner, dealer, builder, or agent"
+                                            : "Select your relationship to this property"
+                                        }
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            <div className="form-section">
+                                <h4>Property Images</h4>
+                                <p className="step-description">Add photos of your property (Max 10 images, 5MB each)</p>
+                                
+                                <div className="image-upload-section">
                                 <label className="image-upload-label">
                                     <input
                                         type="file"
@@ -1110,6 +1164,7 @@ const AddProperty = () => {
                                         </div>
                                     ))}
                                 </div>
+                            </div>
                             </div>
                         </div>
                     )}

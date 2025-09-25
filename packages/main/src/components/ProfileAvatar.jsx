@@ -34,34 +34,14 @@ const ProfileAvatar = ({ user, onLogout }) => {
   return (
     <div className="profile-avatar-container" style={{ position: 'relative' }}>
       <div
-        className="profile-avatar"
+        className="nav-link nav-user-profile"
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
         style={{
-          width: '40px',
-          height: '40px',
-          borderRadius: '50%',
-          backgroundColor: getAvatarColor(userName),
-          color: 'white',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
           cursor: 'pointer',
-          fontSize: '16px',
-          fontWeight: 'bold',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-          transition: 'all 0.3s ease',
-          border: '2px solid white'
-        }}
-        onMouseOver={(e) => {
-          e.target.style.transform = 'scale(1.05)';
-          e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.25)';
-        }}
-        onMouseOut={(e) => {
-          e.target.style.transform = 'scale(1)';
-          e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+          textDecoration: 'none'
         }}
       >
-        {getInitials(user.name)}
+        Hi, {userName}
       </div>
 
       {isDropdownOpen && (
@@ -69,7 +49,7 @@ const ProfileAvatar = ({ user, onLogout }) => {
           className="profile-dropdown"
           style={{
             position: 'absolute',
-            top: '50px',
+            top: '35px',
             right: '0',
             backgroundColor: 'white',
             borderRadius: '8px',
@@ -97,6 +77,33 @@ const ProfileAvatar = ({ user, onLogout }) => {
           </div>
           
           <div style={{ padding: '8px 0' }}>
+            {/* Profile Option - Just text, no functionality */}
+            <div
+              style={{
+                display: 'block',
+                padding: '8px 16px',
+                color: '#666',
+                fontSize: '14px',
+                cursor: 'default'
+              }}
+            >
+              Profile
+            </div>
+            
+            {/* Dashboard Option - Just text, no functionality */}
+            <div
+              style={{
+                display: 'block',
+                padding: '8px 16px',
+                color: '#666',
+                fontSize: '14px',
+                cursor: 'default'
+              }}
+            >
+              Dashboard
+            </div>
+            
+            {/* Admin Dashboard - Only for admin users */}
             {user.role === 'admin' && (
               <a
                 href={`http://localhost:3001?auth=${encodeURIComponent(JSON.stringify({
@@ -120,6 +127,24 @@ const ProfileAvatar = ({ user, onLogout }) => {
               </a>
             )}
             
+            {/* Agent Dashboard - Only for agent users */}
+            {user.role === 'agent' && (
+              <div
+                style={{
+                  display: 'block',
+                  padding: '8px 16px',
+                  color: '#333',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  backgroundColor: '#f0f8ff',
+                  borderLeft: '3px solid #007bff'
+                }}
+              >
+                Agent Dashboard
+              </div>
+            )}
+            
+            {/* Logout - Functional */}
             <button
               onClick={handleLogout}
               style={{

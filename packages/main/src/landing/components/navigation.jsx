@@ -3,12 +3,17 @@ import "./navigation.css";
 import { useAuth } from "../../contexts/AuthContext";
 import LocationSelector from "./LocationSelector/LocationSelector";
 import { categoriesAPI } from "../../api/categories";
+import ProfileAvatar from "../../components/ProfileAvatar";
 
 export const Navigation = (props) => {
-  const { user, isAuthenticated, handleAddPropertyClick } = useAuth();
+  const { user, isAuthenticated, handleAddPropertyClick, logout } = useAuth();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const handleLogout = () => {
+    logout();
+  };
 
   // Fetch categories on component mount
   useEffect(() => {
@@ -112,7 +117,7 @@ export const Navigation = (props) => {
           
           <div className="navbar-brand-section">
             <a className="navbar-brand page-scroll" href="#page-top">
-              RealEstate
+                Real <span className="navbar-brand-text">Estate</span>
             </a>
             
             <LocationSelector />
@@ -330,9 +335,7 @@ export const Navigation = (props) => {
             
             <li className="auth-section">
               {isAuthenticated && user ? (
-                 <a href="/profile" className="nav-link nav-user-profile">
-                    Hi, {user.name || "mp jain"}
-                 </a>
+                 <ProfileAvatar user={user} onLogout={handleLogout} />
               ) : (
                 <>
                   <a href="/login" className="nav-login-link">
