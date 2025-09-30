@@ -721,6 +721,7 @@ const AddProperty = () => {
         try {
             console.log('🚀 Submitting property with payload:', propertyPayload);
             console.log('🔍 Ownership Type being sent:', propertyPayload.ownershipType);
+            console.log('🔍 Features being sent:', propertyPayload.features);
             
             // First create property
             const response = await fetch('http://localhost:5000/api/properties', {
@@ -1096,7 +1097,7 @@ const AddProperty = () => {
                         </div>
                     )}
                     
-                    {/* Step 4: Images */}
+                    {/* Step 4: Images & Ownership */}
                     {step === 4 && (
                         <div className="form-step">
                             <h3>Property Images & Ownership</h3>

@@ -55,7 +55,7 @@ const ProfileAvatar = ({ user, onLogout }) => {
             borderRadius: '8px',
             boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
             minWidth: '200px',
-            zIndex: 1000,
+            zIndex: 1000000 ,
             border: '1px solid #e0e0e0'
           }}
         >

@@ -260,5 +260,74 @@ export const fieldDefinitions = {
     powerConnection: {
         label: 'Power Connection',
         type: 'checkbox'
+    },
+    
+    // Amenities
+    parking: {
+        label: 'Parking',
+        type: 'select',
+        options: ['none', 'bike', 'car', 'both']
+    },
+    lift: {
+        label: 'Lift',
+        type: 'checkbox'
+    },
+    security: {
+        label: '24x7 Security',
+        type: 'checkbox'
+    },
+    gym: {
+        label: 'Gym',
+        type: 'checkbox'
+    },
+    swimmingPool: {
+        label: 'Swimming Pool',
+        type: 'checkbox'
+    },
+    clubHouse: {
+        label: 'Club House',
+        type: 'checkbox'
+    },
+    playArea: {
+        label: 'Children\'s Play Area',
+        type: 'checkbox'
+    },
+    powerBackup: {
+        label: 'Power Backup',
+        type: 'select',
+        options: ['none', 'partial', 'full']
+    },
+    waterSupply: {
+        label: 'Water Supply',
+        type: 'select',
+        options: ['corporation', 'borewell', 'both']
+    },
+    gasConnection: {
+        label: 'Gas Pipeline',
+        type: 'checkbox'
+    },
+    vastu: {
+        label: 'Vastu Compliant',
+        type: 'checkbox'
+    },
+    petFriendly: {
+        label: 'Pet Friendly',
+        type: 'checkbox'
+    },
+    intercom: {
+        label: 'Intercom',
+        type: 'checkbox'
+    },
+    visitorParking: {
+        label: 'Visitor Parking',
+        type: 'checkbox'
+    },
+    cctv: {
+        label: 'CCTV',
+        type: 'checkbox'
+    },
+    fireSafety: {
+        label: 'Fire Safety',
+        type: 'checkbox'
     }
 };

@@ -5,9 +5,15 @@ const fs = require('fs');
 const path = require('path');
 
 exports.createProperty = async (req, res) => {
-    let transaction;
+    // Temporarily disable transaction to debug the issue
+    // let transaction;
     try {
-        transaction = await db.sequelize.transaction();
+        console.log('🚀 ===== PROPERTY CREATION STARTED =====');
+        console.log('🔄 Starting property creation...');
+        // transaction = await db.sequelize.transaction({
+        //     isolationLevel: 'READ_COMMITTED',
+        //     timeout: 30000 // 30 seconds timeout
+        // });
         const userId = req.user.id;
         const {
             categoryId,
@@ -66,6 +72,7 @@ exports.createProperty = async (req, res) => {
         } = req.body;
 
         console.log('🔍 Backend received ownershipType:', ownershipType);
+        console.log('🔍 Backend received features:', features);
         console.log('🔍 Full request body:', JSON.stringify(req.body, null, 2));
 
         // Clean up numeric fields - convert empty strings to null
@@ -223,27 +230,81 @@ exports.createProperty = async (req, res) => {
                     carpetArea: cleanedData.carpetArea
                 });
         }
-        const property = await Property.create(propertyData);
+        
+        console.log('🏠 Creating property with data:', JSON.stringify(propertyData, null, 2));
+        const property = await Property.create(propertyData); // Temporarily remove transaction
+        console.log('✅ Property created successfully:', property.id);
 
 
         // Create property features if provided
+        console.log('🔍 Checking features condition...');
+        console.log('🔍 Features object:', features);
+        console.log('🔍 Features type:', typeof features);
+        console.log('🔍 Features keys:', features ? Object.keys(features) : 'null');
+        console.log('🔍 Features length:', features ? Object.keys(features).length : 'null');
+        
         if (features && Object.keys(features).length > 0) {
             try {
-                await PropertyFeature.findOrCreate({
+                console.log('🔍 Creating property features for property:', property.id);
+                console.log('🔍 Features to save:', features);
+                
+                // Clean features data to handle ENUM fields correctly
+                const cleanedFeatures = { ...features };
+                
+                console.log('🔍 Original features before cleaning:', cleanedFeatures);
+                
+                // Handle ENUM fields - convert boolean false to correct ENUM values
+                if (cleanedFeatures.parking === false) {
+                    cleanedFeatures.parking = 'none';
+                    console.log('🔧 Converted parking false to none');
+                }
+                if (cleanedFeatures.powerBackup === false) {
+                    cleanedFeatures.powerBackup = 'none';
+                    console.log('🔧 Converted powerBackup false to none');
+                }
+                if (cleanedFeatures.waterSupply === false) {
+                    cleanedFeatures.waterSupply = 'corporation';
+                    console.log('🔧 Converted waterSupply false to corporation');
+                }
+                
+                // Remove boolean false values for other fields to avoid database issues
+                Object.keys(cleanedFeatures).forEach(key => {
+                    if (cleanedFeatures[key] === false && 
+                        !['lift', 'security', 'cctv', 'gym', 'swimmingPool', 'clubHouse', 'playArea', 
+                          'gasConnection', 'vastu', 'petFriendly', 'intercom', 'visitorParking', 
+                          'boundaryWall', 'waterConnection', 'electricityConnection', 'centralAC', 
+                          'cafeteria', 'garden', 'servantQuarter', 'guestHouse', 'borewell', 
+                          'ac', 'wifi', 'laundry', 'housekeeping', 'cornerProperty', 'mainRoadFacing'].includes(key)) {
+                        delete cleanedFeatures[key];
+                        console.log('🗑️ Removed false value for field:', key);
+                    }
+                });
+                
+                console.log('🔍 Cleaned features:', cleanedFeatures);
+                
+                const featureRecord = await PropertyFeature.findOrCreate({
                     where: { propertyId: property.id },
                     defaults: {
                         propertyId: property.id,
-                        ...features
-                    },
-                    // transaction
+                        ...cleanedFeatures
+                    }
+                    // Temporarily remove transaction
                 });
+                console.log('✅ Property features created:', featureRecord);
             } catch (featureError) {
-                console.error('Error creating property features:', featureError);
+                console.error('❌ Error creating property features:', featureError);
                 // Don't fail the entire property creation if features fail
             }
+        } else {
+            console.log('⚠️ No features provided or features object is empty');
+            console.log('⚠️ Features condition failed - features:', features);
+            console.log('⚠️ Features is null/undefined:', features === null || features === undefined);
+            console.log('⚠️ Features is empty object:', features && Object.keys(features).length === 0);
         }
 
+        // console.log('💾 Committing transaction...');
         // await transaction.commit();
+        // console.log('✅ Transaction committed successfully');
         
         console.log('✅ Property created successfully:', {
             id: property.id,
@@ -252,6 +313,7 @@ exports.createProperty = async (req, res) => {
             status: property.status
         });
         
+        console.log('🎉 ===== PROPERTY CREATION COMPLETED =====');
         res.status(201).json({
             success: true,
             message: 'Property created successfully',
@@ -262,11 +324,14 @@ exports.createProperty = async (req, res) => {
         });
 
     } catch (error) {
+        console.error('❌ Property creation failed:', error.message);
         // if (transaction) {
         //     try {
+        //         console.log('🔄 Rolling back transaction...');
         //         await transaction.rollback();
+        //         console.log('✅ Transaction rolled back successfully');
         //     } catch (rollbackError) {
-        //         console.error('Error rolling back transaction:', rollbackError);
+        //         console.error('❌ Error rolling back transaction:', rollbackError);
         //     }
         // }
         
@@ -430,8 +495,8 @@ exports.getAllProperties = async (req, res) => {
             status: { [Op.in]: ['active', 'pending'] }
         };
 
-        if (categoryId) where.categoryId = parseInt(categoryId);
-        if (subCategoryId) where.subCategoryId = parseInt(subCategoryId);
+        if (categoryId && !isNaN(parseInt(categoryId))) where.categoryId = parseInt(categoryId);
+        if (subCategoryId && !isNaN(parseInt(subCategoryId))) where.subCategoryId = parseInt(subCategoryId);
         if (city) where.city = { [Op.iLike]: `%${city}%` };
         if (minPrice || maxPrice) {
             where.price = {};
@@ -485,7 +550,7 @@ exports.getAllProperties = async (req, res) => {
                 {
                     model: User,
                     as: 'owner',
-                    attributes: ['id', 'firstName', 'lastName', 'phoneNumber', 'profileCompleted']
+                    attributes: ['id', 'firstName', 'lastName', 'phoneNumber', 'address', 'city', 'state', 'profileCompleted']
                 },
                 {
                     model: PropertyFeature,
@@ -548,7 +613,7 @@ exports.getPropertyBySlug = async (req, res) => {
                 {
                     model: User,
                     as: 'owner',
-                    attributes: ['id', 'firstName', 'lastName', 'email', 'phoneNumber', 'createdAt']
+                    attributes: ['id', 'firstName', 'lastName', 'email', 'phoneNumber', 'address', 'city', 'state', 'createdAt']
                 },
                 {
                     model: PropertyFeature,
@@ -566,6 +631,8 @@ exports.getPropertyBySlug = async (req, res) => {
 
         // Increment view count
         await property.increment('viewCount');
+
+        console.log('🔍 Property fetched with features:', property.features);
 
         res.json({
             success: true,

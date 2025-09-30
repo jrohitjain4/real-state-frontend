@@ -9,11 +9,21 @@
   right: 0;
   width: 100%;
   min-height: 60px;
+  overflow: visible; /* Allow dropdowns to show */
 }
 #menu.navbar-default {
   background-color: #fff;
   border-color: rgba(231, 231, 231, 0);
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+  overflow: visible; /* Allow dropdowns to show */
+}
+
+#menu .container {
+  overflow: visible; /* Allow dropdowns to show */
+}
+
+#menu .navbar-collapse {
+  overflow: visible; /* Allow dropdowns to show */
 }
 #menu a.navbar-brand {
   font-family: "Raleway", sans-serif;
@@ -29,6 +39,7 @@
   margin: 0;
   padding: 0;
   height: 56px;
+  overflow: visible; /* Allow dropdowns to show */
 }
 #menu.navbar-default .navbar-nav > li {
   display: flex;
@@ -36,6 +47,8 @@
   margin: 0;
   padding: 0;
   height: 100%;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 #menu.navbar-default .navbar-nav > li > a {
   font-family: "Lato", sans-serif;
@@ -91,16 +104,19 @@
 /* THE #1 FIX: The parent LI must be relative to anchor the absolute dropdown */
 .nav-item-dropdown {
   position: relative;
+  z-index: 1001; /* Ensure dropdown container is above other content */
 }
 
 .dropdown-menu-mega {
   display: none;
-  position: absolute;
-  top: 55px; /* Position it just below the nav item */
-  left: -329px !important; /* Align its left edge with the left edge of the "Buy" link */
+  position: fixed; /* Use fixed positioning to center on viewport */
+  top: 70px; /* Position below the navigation bar */
+  left: 8vw !important; /* Center using viewport width */
+  transform: translateX(-50%) translateY(10px); /* Center horizontally and add slide animation */
   
   /* Set a fixed, large width as seen in your screenshot */
-  width: 800px; 
+  width: 900px; /* Increased width for better centering */
+  max-width: 90vw; /* Ensure it doesn't exceed viewport width */
   
   background-color: #fff;
   box-shadow: 0 8px 16px rgba(0,0,0,0.15);
@@ -115,7 +131,7 @@
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
-  transform: translateY(10px); /* Add a subtle slide-up animation */
+  z-index: 1000; /* Ensure dropdown appears above other content */
 }
 
 .dropdown-column {
@@ -167,13 +183,52 @@
 
 /* Hover logic to show dropdown */
 .nav-item-dropdown:hover > .dropdown-menu-mega {
-  display: flex;
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateX(-50%) translateY(0) !important;
+}
+
+/* Also show on hover of the link itself */
+.nav-item-dropdown:hover .dropdown-menu-mega {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateX(-50%) translateY(0) !important;
 }
 .nav-item-dropdown:hover > .nav-link-dropdown::after {
   transform: rotate(180deg); 
+}
+
+/* Debug: Make dropdowns visible for testing */
+.nav-item-dropdown .dropdown-menu-mega {
+  /* Debug styles removed - dropdowns now working properly */
+}
+
+/* Responsive adjustments for dropdown centering */
+@media (max-width: 1200px) {
+  .dropdown-menu-mega {
+    width: 800px;
+    left: 50vw;
+    transform: translateX(-50%) translateY(10px);
+  }
+}
+
+@media (max-width: 992px) {
+  .dropdown-menu-mega {
+    width: 700px;
+    left: 50vw;
+    transform: translateX(-50%) translateY(10px);
+  }
+}
+
+@media (max-width: 768px) {
+  .dropdown-menu-mega {
+    width: 90vw;
+    left: 50vw;
+    transform: translateX(-50%) translateY(10px);
+    padding: 20px;
+  }
 }
 
 
@@ -243,11 +298,13 @@
   border-radius: 10px !important;
   font-weight: 700 !important;
   text-transform: none !important;
-  display: flex !important;
+  display: inline-flex !important;
   align-items: center !important;
   gap: 8px !important;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease-in-out;
+  white-space: nowrap !important;
+  flex-wrap: nowrap !important;
 }
 .nav-post-property .free-tag {
   background: linear-gradient(135deg, #ff7e5f, #ff5f6d);
@@ -267,5 +324,44 @@
 }
 .navbar-brand-text{
   color: #ff6b35;
+}
 
+/* Responsive fixes for navigation */
+@media (max-width: 1200px) {
+  #menu.navbar-default .navbar-nav > li > a {
+    padding: 8px 6px;
+    margin: 0 4px;
+    font-size: 13px;
+  }
+  
+  .nav-post-property {
+    padding: 6px 10px !important;
+    font-size: 13px !important;
+  }
+}
+
+@media (max-width: 992px) {
+  .nav-post-property {
+    padding: 6px 8px !important;
+    font-size: 12px !important;
+  }
+  
+  .nav-post-property .free-tag {
+    padding: 10px 12px;
+  }
+}
+
+/* Ensure navigation items don't break */
+.navbar-nav {
+  overflow-x: auto;
+  overflow-y: visible; /* Allow dropdowns to show */
+}
+
+.navbar-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.navbar-nav {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

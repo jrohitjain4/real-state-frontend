@@ -162,6 +162,11 @@ exports.updateKYCDetails = async (req,res) => {
    try {
     const { aadharNumber, panNumber, address, city, state, pincode, phone } = req.body;
     const userId = req.user.id;
+    
+    console.log('🔍 KYC Update Request Body:', JSON.stringify(req.body, null, 2));
+    console.log('🔍 Address received:', address);
+    console.log('🔍 City received:', city);
+    console.log('🔍 State received:', state);
      
     const user = await User.findByPk(userId);
     
@@ -189,15 +194,21 @@ exports.updateKYCDetails = async (req,res) => {
     if (phone) user.phoneNumber = phone;
     if (aadharNumber) user.aadharNumber = aadharNumber;
     if (panNumber) user.panNumber = panNumber;
-    if (address) user.address = address;
-    if (city) user.city = city;
-    if (state) user.state = state;
-    if (pincode) user.pincode = pincode;
+    if (address && address !== 'null' && address.trim() !== '') user.address = address;
+    if (city && city !== 'null' && city.trim() !== '') user.city = city;
+    if (state && state !== 'null' && state.trim() !== '') user.state = state;
+    if (pincode && pincode !== 'null' && pincode.trim() !== '') user.pincode = pincode;
 
     // Check and update profile completion
     user.checkProfileCompletion();
     
     await user.save();
+    
+    console.log('✅ User saved successfully');
+    console.log('🔍 User address after save:', user.address);
+    console.log('🔍 User city after save:', user.city);
+    console.log('🔍 User state after save:', user.state);
+    console.log('🔍 Profile completed:', user.profileCompleted);
 
     res.status(200).json({
         success: true,

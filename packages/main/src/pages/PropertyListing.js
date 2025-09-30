@@ -54,7 +54,9 @@ const PropertyListing = () => {
 
             const validParams = {};
             for (const [key, value] of currentParams.entries()) {
-                if (value) validParams[key] = value;
+                if (value && value !== 'NaN' && value !== 'null' && value !== 'undefined') {
+                    validParams[key] = value;
+                }
             }
             
             const queryString = new URLSearchParams(validParams).toString();
@@ -155,7 +157,6 @@ const PropertyListing = () => {
                                 <h2 style={{ marginTop: '20px', color: '#4d2f6a', marginBottom: '20px' }}>
                                     {pagination.total} Properties Found {filters.city && `in ${filters.city.charAt(0).toUpperCase() + filters.city.slice(1)}`}
                                 </h2>
-                                {/* THE CHANGE IS HERE: The inline style was removed from this div */}
                                 <div className="sort-options">
                                     <select value={`${filters.sortBy}-${filters.sortOrder}`} onChange={(e) => { const [sortBy, sortOrder] = e.target.value.split('-'); handleFilterChange('sortBy', sortBy); handleFilterChange('sortOrder', sortOrder); }} className="sort-select">
                                         <option value="createdAt-DESC">Newest First</option>
@@ -218,6 +219,142 @@ const PropertyListing = () => {
                                     <div className="dream-house-banner"><div className="dream-house-content"><h2 className="dream-title">Dream House</h2><h3 className="dream-subtitle">of Yours</h3><p className="dream-description">Find your perfect home with our extensive collection of premium properties. Your dream home is just a click away!</p><button className="dream-cta">Explore Now</button></div><div className="dream-house-image"><img src="/img/about.jpg" alt="Dream House" /></div></div>
                                     <div className="banner-card alert-banner"><div className="alert-content"><i className="fas fa-bell"></i><h4>Get Property Alerts</h4><p>Never miss a property that matches your requirements</p><button className="alert-cta">Set Alert</button></div></div>
                                     <div className="stats-banner"><h4>Our Success</h4><div className="stats-grid"><div className="stat-item"><span className="stat-number">500+</span><span className="stat-label">Properties</span></div><div className="stat-item"><span className="stat-number">200+</span><span className="stat-label">Happy Clients</span></div><div className="stat-item"><span className="stat-number">50+</span><span className="stat-label">Cities</span></div><div className="stat-item"><span className="stat-number">5★</span><span className="stat-label">Rating</span></div></div></div>
+                                    
+                                    {/* New Banner 1 - Investment Guide */}
+                                    <div className="banner-card investment-banner">
+                                        <div className="investment-content">
+                                            <i className="fas fa-chart-line"></i>
+                                            <h4>Investment Guide</h4>
+                                            <p>Learn the best property investment strategies and market insights</p>
+                                            <button className="investment-cta">Read Guide</button>
+                                        </div>
+                                    </div>
+
+                                    {/* New Banner 2 - Home Loan */}
+                                    <div className="banner-card loan-banner">
+                                        <div className="loan-content">
+                                            <i className="fas fa-home"></i>
+                                            <h4>Home Loan</h4>
+                                            <p>Get instant home loan approval with competitive interest rates</p>
+                                            <button className="loan-cta">Apply Now</button>
+                                        </div>
+                                    </div>
+
+                                    {/* New Banner 3 - Property Valuation */}
+                                    <div className="banner-card valuation-banner">
+                                        <div className="valuation-content">
+                                            <i className="fas fa-calculator"></i>
+                                            <h4>Property Valuation</h4>
+                                            <p>Get accurate property valuation and market price estimates</p>
+                                            <button className="valuation-cta">Get Valuation</button>
+                                        </div>
+                                    </div>
+
+                                    {/* New Banner 4 - Expert Consultation */}
+                                    <div className="banner-card expert-banner">
+                                        <div className="expert-content">
+                                            <i className="fas fa-user-tie"></i>
+                                            <h4>Expert Consultation</h4>
+                                            <p>Talk to our property experts for personalized advice</p>
+                                            <button className="expert-cta">Book Now</button>
+                                        </div>
+                                    </div>
+
+                                    {/* Luxury Villa Banner */}
+                                    <div className="banner-card luxury-villa-banner">
+                                        <div className="luxury-villa-content">
+                                            <div className="luxury-image">
+                                                <img src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=400&h=200&fit=crop" alt="Luxury Villa" />
+                                                <div className="luxury-overlay">
+                                                    <h4>Luxury Villas</h4>
+                                                    <p>Premium villas with modern amenities</p>
+                                                    <button className="luxury-cta">Explore Villas</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Penthouse Banner */}
+                                    <div className="banner-card penthouse-banner">
+                                        <div className="penthouse-content">
+                                            <div className="penthouse-image">
+                                                <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&h=200&fit=crop" alt="Penthouse" />
+                                                <div className="penthouse-overlay">
+                                                    <h4>Penthouses</h4>
+                                                    <p>Exclusive penthouses with city views</p>
+                                                    <button className="penthouse-cta">View Penthouses</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Luxury Apartments Banner */}
+                                    <div className="banner-card luxury-apartment-banner">
+                                        <div className="luxury-apartment-content">
+                                            <div className="luxury-apartment-image">
+                                                <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=200&fit=crop" alt="Luxury Apartment" />
+                                                <div className="luxury-apartment-overlay">
+                                                    <h4>Luxury Apartments</h4>
+                                                    <p>High-end apartments with premium features</p>
+                                                    <button className="luxury-apartment-cta">Browse Apartments</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Farmhouse Banner */}
+                                    <div className="banner-card farmhouse-banner">
+                                        <div className="farmhouse-content">
+                                            <div className="farmhouse-image">
+                                                <img src="https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=400&h=200&fit=crop" alt="Farmhouse" />
+                                                <div className="farmhouse-overlay">
+                                                    <h4>Farmhouses</h4>
+                                                    <p>Spacious farmhouses with natural surroundings</p>
+                                                    <button className="farmhouse-cta">Discover Farmhouses</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Commercial Properties Banner */}
+                                    <div className="banner-card commercial-banner">
+                                        <div className="commercial-content">
+                                            <i className="fas fa-building"></i>
+                                            <h4>Commercial Properties</h4>
+                                            <p>Office spaces, shops, and commercial real estate</p>
+                                            <button className="commercial-cta">View Commercial</button>
+                                        </div>
+                                    </div>
+
+                                    {/* Property Management Banner */}
+                                    <div className="banner-card management-banner">
+                                        <div className="management-content">
+                                            <i className="fas fa-cogs"></i>
+                                            <h4>Property Management</h4>
+                                            <p>Professional property management services</p>
+                                            <button className="management-cta">Learn More</button>
+                                        </div>
+                                    </div>
+
+                                    {/* Real Estate News Banner */}
+                                    <div className="banner-card news-banner">
+                                        <div className="news-content">
+                                            <i className="fas fa-newspaper"></i>
+                                            <h4>Market News</h4>
+                                            <p>Latest real estate trends and market updates</p>
+                                            <button className="news-cta">Read News</button>
+                                        </div>
+                                    </div>
+
+                                    {/* Contact Us Banner */}
+                                    <div className="banner-card contact-banner">
+                                        <div className="contact-content">
+                                            <i className="fas fa-phone"></i>
+                                            <h4>Contact Us</h4>
+                                            <p>Get in touch with our expert team</p>
+                                            <button className="contact-cta">Call Now</button>
+                                        </div>
+                                    </div>
                                 </aside>
                             </div>
 
