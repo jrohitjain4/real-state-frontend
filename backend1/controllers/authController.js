@@ -386,7 +386,6 @@ exports.uploadProfilePhoto = async (req,res) => {
 
 
 exports.uploadKYCDocument = async (req, res) => {
-
     try {
         const { documentType } = req.body;
         
@@ -398,20 +397,48 @@ exports.uploadKYCDocument = async (req, res) => {
         }
 
         const user = await User.findByPk(req.user.id);
-        const filePath = `/uploads/kyc/${req.file.filename}`;
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
 
+        const filePath = `/uploads/kyc/${req.file.filename}`;
         
-        // KYC upload functionality disabled for now
-        return res.status(400).json({
-            success: false,
-            message: 'KYC upload not available'
+        // Update the appropriate field based on document type
+        switch (documentType) {
+            case 'aadhar':
+                user.aadharPhoto = filePath;
+                break;
+            case 'pan':
+                user.panPhoto = filePath;
+                break;
+            default:
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid document type. Only "aadhar" and "pan" are supported.'
+                });
+        }
+
+        await user.save();
+
+        res.json({
+            success: true,
+            message: 'Document uploaded successfully',
+            filePath: filePath,
+            documentType: documentType
         });
+
     } catch (err) {
         // Delete uploaded file on error
         if (req.file && req.file.path) {
             fs.unlinkSync(req.file.path);
         }
-        console.error(err);
-        res.status(500).json({ success: false, message: 'Server error' });
+        console.error('KYC upload error:', err);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Server error during document upload' 
+        });
     }
 };

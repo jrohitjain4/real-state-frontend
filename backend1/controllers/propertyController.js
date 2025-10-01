@@ -674,9 +674,9 @@ exports.getMyProperties = async (req, res) => {
                 {
                     model: PropertyImage,
                     as: 'images',
-                    where: { isPrimary: true },
                     required: false,
-                    attributes: ['imageUrl']
+                    attributes: ['imageUrl', 'isPrimary', 'order'],
+                    order: [['isPrimary', 'DESC'], ['order', 'ASC']]
                 }
             ],
             order: [['createdAt', 'DESC']],
