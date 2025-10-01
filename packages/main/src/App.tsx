@@ -45,6 +45,7 @@ import AddProperty from './pages/AddProperty';
 import PropertyListing from './pages/PropertyListing';
 import PropertyDetail from './pages/PropertyDetail';
 import MyProperties from './pages/MyProperties';
+import Dashboard from './pages/Dashboard';
 import { Navigation } from './landing/components/navigation';
 import { LocationProvider } from './contexts/LocationContext';
 import { AuthProvider } from './contexts/AuthContext';
@@ -73,6 +74,7 @@ const AppContent = () => {
           <Route path="/property/:slug" element={<PropertyDetail />} />
           <Route path="/add-property" element={<AddProperty />} />
           <Route path="/my-properties" element={<MyProperties />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           </Routes>
         </div>
       </LocationProvider>

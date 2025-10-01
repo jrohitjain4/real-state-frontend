@@ -9,17 +9,17 @@
   right: 0;
   width: 100%;
   min-height: 60px;
-  overflow: visible; /* Allow dropdowns to show */
+  overflow: visible; 
 }
 #menu.navbar-default {
   background-color: #fff;
   border-color: rgba(231, 231, 231, 0);
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
-  overflow: visible; /* Allow dropdowns to show */
+  overflow: visible; 
 }
 
 #menu .container {
-  overflow: visible; /* Allow dropdowns to show */
+  overflow: visible; 
 }
 
 #menu .navbar-collapse {
@@ -109,20 +109,19 @@
 
 .dropdown-menu-mega {
   display: none;
-  position: fixed; /* Use fixed positioning to center on viewport */
-  top: 70px; /* Position below the navigation bar */
-  left: 8vw !important; /* Center using viewport width */
-  transform: translateX(-50%) translateY(10px); /* Center horizontally and add slide animation */
-  
-  /* Set a fixed, large width as seen in your screenshot */
-  width: 900px; /* Increased width for better centering */
-  max-width: 90vw; /* Ensure it doesn't exceed viewport width */
+  position: fixed; 
+  top: 70px; 
+  left: 8vw !important; 
+  transform: translateX(-50%) translateY(10px);
+ 
+  width: 900px; 
+  max-width: 90vw; 
   
   background-color: #fff;
   box-shadow: 0 8px 16px rgba(0,0,0,0.15);
   border-radius: 6px;
   padding: 25px;
-  border-top: 3px solid #4d2f6a; /* Theme color accent */
+  border-top: 3px solid #4d2f6a; 
   
   /* Layout for the columns inside */
   display: flex;
@@ -131,7 +130,7 @@
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
-  z-index: 1000; /* Ensure dropdown appears above other content */
+  z-index: 1000; 
 }
 
 .dropdown-column {
@@ -162,7 +161,7 @@
 
 /* Image column styles */
 .dropdown-image-column {
-  flex: 1.2; /* Give the image column a bit more space */
+flex: 1.2; 
 }
 .dropdown-image-column img {
   width: 100%;

@@ -333,6 +333,14 @@ export const Navigation = (props) => {
               </a>
             </li>
             
+            {isAuthenticated && user && (
+              <li>
+                <a href="/dashboard" className="nav-link">
+                  Dashboard
+                </a>
+              </li>
+            )}
+            
             <li className="auth-section">
               {isAuthenticated && user ? (
                  <ProfileAvatar user={user} onLogout={handleLogout} />

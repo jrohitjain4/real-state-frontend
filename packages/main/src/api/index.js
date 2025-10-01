@@ -11,8 +11,15 @@ export * from './property';
 // Category API
 export * from './category';
 
-// Upload API
-export * from './upload';
+// Upload API (specific exports to avoid conflicts)
+export { 
+  uploadImage, 
+  uploadImages, 
+  uploadPropertyImagesFile, 
+  uploadProfileImage, 
+  uploadKYCDocumentsFile, 
+  getImageUrl
+} from './upload';
 
 // Legacy APIs (for backward compatibility)
 export { authAPI } from './auth';

@@ -49,8 +49,8 @@ export const uploadImages = async (imageFiles) => {
   return response.json();
 };
 
-// Upload property images
-export const uploadPropertyImages = async (propertyId, images) => {
+// Upload property images (renamed to avoid conflict)
+export const uploadPropertyImagesFile = async (propertyId, images) => {
   const formData = new FormData();
   images.forEach((image, index) => {
     formData.append('images', image);
@@ -77,8 +77,8 @@ export const uploadProfileImage = async (imageFile) => {
   return response.json();
 };
 
-// Upload KYC documents
-export const uploadKYCDocuments = async (documents) => {
+// Upload KYC documents (renamed to avoid conflict)
+export const uploadKYCDocumentsFile = async (documents) => {
   const formData = new FormData();
   Object.keys(documents).forEach(key => {
     if (documents[key]) {
@@ -105,8 +105,8 @@ export const getImageUrl = (imagePath) => {
 export const uploadAPI = {
   uploadImage,
   uploadImages,
-  uploadPropertyImages,
+  uploadPropertyImagesFile,
   uploadProfileImage,
-  uploadKYCDocuments,
+  uploadKYCDocumentsFile,
   getImageUrl
 };

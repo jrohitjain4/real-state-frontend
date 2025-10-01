@@ -39,7 +39,7 @@ const CompleteProfile = () => {
         try {
             const response = await fetch('http://localhost:5000/api/data/profile-status', {
                 headers: {
-                    'x-auth-token': token
+                    'Authorization': `Bearer ${token}`
                 }
             });
             
@@ -144,17 +144,18 @@ const CompleteProfile = () => {
         setLoading(true);
         
         try {
-            // Update KYC details
+            // Update KYC details first
             const detailsResponse = await fetch('http://localhost:5000/api/data/kyc-details', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'x-auth-token': token
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(profileData)
             });
             
             const detailsData = await detailsResponse.json();
+            console.log('KYC Details Response:', detailsData);
             
             if (!detailsData.success) {
                 throw new Error(detailsData.message);
@@ -163,22 +164,42 @@ const CompleteProfile = () => {
             // Upload documents
             for (const [docType, file] of Object.entries(documents)) {
                 if (file) {
+                    console.log(`Uploading ${docType}:`, file.name);
+                    
                     const formData = new FormData();
                     formData.append('document', file);
-                    formData.append('documentType', docType.replace('Photo', ''));
                     
-                    await fetch('http://localhost:5000/api/auth/upload-kyc', {
+                    // Map document types correctly
+                    let documentType = '';
+                    if (docType === 'aadharPhoto') {
+                        documentType = 'aadhar';
+                    } else if (docType === 'panPhoto') {
+                        documentType = 'pan';
+                    } else if (docType === 'profilePhoto') {
+                        documentType = 'profile';
+                    }
+                    
+                    formData.append('documentType', documentType);
+                    
+                    const uploadResponse = await fetch('http://localhost:5000/api/auth/upload-kyc', {
                         method: 'POST',
                         headers: {
-                            'x-auth-token': token
+                            'Authorization': `Bearer ${token}`
                         },
                         body: formData
                     });
+                    
+                    const uploadData = await uploadResponse.json();
+                    console.log(`Upload response for ${docType}:`, uploadData);
+                    
+                    if (!uploadData.success) {
+                        console.error(`Failed to upload ${docType}:`, uploadData.message);
+                    }
                 }
             }
             
             alert('Profile completed successfully!');
-            navigate('/');
+            navigate('/dashboard');
             
         } catch (error) {
             console.error('Error updating profile:', error);
