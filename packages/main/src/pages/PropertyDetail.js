@@ -1,5 +1,5 @@
 // // src/pages/PropertyDetail.js - Redesigned with Backend Integration
-// import React, { useState, useEffect } from 'react';
+// import React, { useState, useEffect, useCallback } from 'react';
 // import { useParams, useNavigate, Link } from 'react-router-dom';
 // import './PropertyDetail.css';
 
@@ -586,12 +586,14 @@
 
 
 // src/pages/PropertyDetail.js - Combined Design with Backend Integration
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { sendMessage } from '../api/message';
+import { getCurrentUser } from '../api/auth';
 import './PropertyDetail.css';
 
 const PropertyDetail = () => {
-    const { slug } = useParams();
+    const { slug, id } = useParams();
     const navigate = useNavigate();
     const [property, setProperty] = useState(null);
     const [similarProperties, setSimilarProperties] = useState([]);
@@ -603,34 +605,69 @@ const PropertyDetail = () => {
     const [contactPhone, setContactPhone] = useState('');
     const [contactEmail, setContactEmail] = useState('');
     const [contactMessage, setContactMessage] = useState('Hello, I am interested in this property.');
+    const [sendingMessage, setSendingMessage] = useState(false);
 
-    useEffect(() => {
-        const fetchAllData = async () => {
-            setLoading(true);
-            window.scrollTo(0, 0);
+    // Handle sending message
+    const handleSendMessage = async (e) => {
+        e.preventDefault();
+        
+        // Check if user is logged in
+        const currentUser = getCurrentUser();
+        if (!currentUser) {
+            alert('Please login to send a message');
+            navigate('/login');
+            return;
+        }
 
+        if (!property || !property.owner) {
+            alert('Property owner information not available');
+            return;
+        }
+
+        console.log('=== PROPERTY DETAIL DEBUG ===');
+        console.log('Property:', property);
+        console.log('Property Owner:', property.owner);
+        console.log('Property Owner ID:', property.owner.id);
+        console.log('Current User:', currentUser);
+
+        setSendingMessage(true);
+        
         try {
-            const response = await fetch(`http://localhost:5000/api/properties/${slug}`);
-            const data = await response.json();
+            const messageData = {
+                receiverId: property.owner.id,
+                propertyId: property.id,
+                subject: `Inquiry about ${property.title}`,
+                message: `Name: ${contactName}\nPhone: ${contactPhone}\nEmail: ${contactEmail}\n\nMessage: ${contactMessage}`
+            };
+
+            console.log('=== SENDING MESSAGE DEBUG ===');
+            console.log('Message Data:', messageData);
+            console.log('Receiver ID being sent:', messageData.receiverId);
+            console.log('Property Owner ID from property:', property.owner.id);
+
+            const response = await sendMessage(messageData);
             
-            if (data.success) {
-                    const currentProperty = data.data;
-                    setProperty(currentProperty);
-                    fetchSimilarProperties(currentProperty); // Pass current property to fetch similar ones
+            if (response.success) {
+                // Reset form
+                setContactName('');
+                setContactPhone('');
+                setContactEmail('');
+                setContactMessage('Hello, I am interested in this property.');
+                
+                // Show success message
+                alert('Message sent successfully! The property owner will receive your message in their dashboard.');
             } else {
-                navigate('/404');
+                alert('Failed to send message. Please try again.');
             }
         } catch (error) {
-            console.error('Error fetching property:', error);
-            navigate('/404');
+            console.error('Error sending message:', error);
+            alert('Failed to send message. Please try again.');
         } finally {
-            setLoading(false);
-            }
-        };
-        fetchAllData();
-    }, [slug, navigate]);
+            setSendingMessage(false);
+        }
+    };
 
-    const fetchSimilarProperties = async (currentProperty) => {
+    const fetchSimilarProperties = useCallback(async (currentProperty) => {
         if (!currentProperty) return;
         try {
             let similar = [];
@@ -657,13 +694,13 @@ const PropertyDetail = () => {
                     const cityProperties = data.data.properties
                         .filter(p => p.slug !== slug && !similar.find(s => s.id === p.id))
                         .slice(0, 6 - similar.length);
-                    
+
                     similar = [...similar, ...cityProperties];
                     console.log(`✅ Added ${cityProperties.length} more properties from same city. Total: ${similar.length}`);
                 }
             }
             
-            // Step 3: If still not enough, get properties from same subcategory (any city)
+            // Step 3: If still not enough, get any properties from same subcategory
             if (similar.length < 6) {
                 console.log('🔍 Step 3: Looking for same subcategory from any city...');
                 response = await fetch(`http://localhost:5000/api/properties?limit=10&subCategoryId=${currentProperty.subCategoryId}`);
@@ -673,13 +710,13 @@ const PropertyDetail = () => {
                     const subcategoryProperties = data.data.properties
                         .filter(p => p.slug !== slug && !similar.find(s => s.id === p.id))
                         .slice(0, 6 - similar.length);
-                    
+
                     similar = [...similar, ...subcategoryProperties];
                     console.log(`✅ Added ${subcategoryProperties.length} more properties from same subcategory. Total: ${similar.length}`);
                 }
             }
             
-            // Step 4: If still not enough, get properties from same category (any city)
+            // Step 4: If still not enough, get any properties from same category
             if (similar.length < 6) {
                 console.log('🔍 Step 4: Looking for same category from any city...');
                 response = await fetch(`http://localhost:5000/api/properties?limit=10&categoryId=${currentProperty.categoryId}`);
@@ -689,7 +726,7 @@ const PropertyDetail = () => {
                     const categoryProperties = data.data.properties
                         .filter(p => p.slug !== slug && !similar.find(s => s.id === p.id))
                         .slice(0, 6 - similar.length);
-                    
+
                     similar = [...similar, ...categoryProperties];
                     console.log(`✅ Added ${categoryProperties.length} more properties from same category. Total: ${similar.length}`);
                 }
@@ -700,7 +737,59 @@ const PropertyDetail = () => {
         } catch (error) {
             console.error('Error fetching similar properties:', error);
         }
-    };
+    }, [slug]);
+
+    // Function to refresh property data
+    const refreshPropertyData = useCallback(async () => {
+        setLoading(true);
+        window.scrollTo(0, 0);
+
+        try {
+            // Use slug if available, otherwise use id
+            const identifier = slug || id;
+            const response = await fetch(`http://localhost:5000/api/properties/${identifier}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                    const currentProperty = data.data;
+                    console.log('=== PROPERTY REFRESH DEBUG ===');
+                    console.log('Property data refreshed:', currentProperty);
+                    console.log('Property owner:', currentProperty.owner);
+                    console.log('Property owner ID:', currentProperty.owner?.id);
+                    console.log('Property userId:', currentProperty.userId);
+                    console.log('Property images count:', currentProperty.images?.length || 0);
+                    setProperty(currentProperty);
+                    fetchSimilarProperties(currentProperty); // Pass current property to fetch similar ones
+            } else {
+                navigate('/404');
+            }
+        } catch (error) {
+            console.error('Error refreshing property:', error);
+            navigate('/404');
+        } finally {
+            setLoading(false);
+            }
+    }, [slug, id, navigate, fetchSimilarProperties]);
+
+    useEffect(() => {
+        refreshPropertyData();
+    }, [slug, id, navigate, refreshPropertyData]);
+
+    // Refresh data when page becomes visible (e.g., coming back from edit page)
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (!document.hidden && property) {
+                console.log('Page became visible, refreshing property data...');
+                refreshPropertyData();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [property, refreshPropertyData]);
 
     // Price format for both new and old sections
     const formatPrice = (price) => {
@@ -783,11 +872,20 @@ const PropertyDetail = () => {
                     {/* Property Header */}
                         <div className="property-header-new">
                             <div className="title-price">
-                            <h1>{property.title}</h1>
+                            <h1>{property.title} for {property.category?.name || 'Sale'} in {property.city}</h1>
                                 <span className="price">
                                     {formatPrice(property.price)}
                                     <span className="price-period">/month</span>
                                 </span>
+                            </div>
+                            <div className="property-actions">
+                                <button 
+                                    onClick={refreshPropertyData}
+                                    className="refresh-btn"
+                                    title="Refresh property data"
+                                >
+                                    <i className="fas fa-sync-alt"></i> Refresh
+                                </button>
                             </div>
                             <div className="location-bar">
                                 <i className="fas fa-map-marker-alt"></i>
@@ -883,12 +981,14 @@ const PropertyDetail = () => {
                             </div>
                         )}
 
-                        <form className="contact-form-new" onSubmit={(e) => e.preventDefault()}>
+                        <form className="contact-form-new" onSubmit={handleSendMessage}>
                             <div className="input-group"><input type="text" value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Your Name" required /></div>
                             <div className="input-group"><input type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} placeholder="Phone Number" /></div>
                             <div className="input-group"><input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder="Email Address" required /></div>
                             <div className="input-group"><textarea value={contactMessage} onChange={(e) => setContactMessage(e.target.value)} placeholder="Message" rows="4" required></textarea></div>
-                            <button type="submit" className="send-message-btn">Send Message</button>
+                            <button type="submit" className="send-message-btn" disabled={sendingMessage}>
+                                {sendingMessage ? 'Sending...' : 'Send Message'}
+                            </button>
                         </form>
                     </div>
                     </div>
@@ -905,7 +1005,7 @@ const PropertyDetail = () => {
                                     <Link key={prop.id} to={`/property/${prop.slug}`} className="similar-property-card">
                                         <div className="property-image"><img src={prop.images && prop.images[0]?.imageUrl ? `http://localhost:5000${prop.images[0].imageUrl}` : '/default-property.jpg'} alt={prop.title} /></div>
                                         <div className="property-info">
-                                            <h4>{prop.title}</h4>
+                                            <h4>{prop.title} for {prop.category?.name || 'Sale'} in {prop.city}</h4>
                                             <p className="property-location"><i className="fas fa-map-marker-alt"></i>{prop.locality}, {prop.city}</p>
                                             <div className="property-specs">
                                                 {prop.bedrooms && <span>{prop.bedrooms} BHK</span>}

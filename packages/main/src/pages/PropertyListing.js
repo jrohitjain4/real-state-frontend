@@ -143,6 +143,13 @@ const PropertyListing = () => {
                             <span>to</span>
                             <input type="number" placeholder="Max Price" value={filters.maxPrice} onChange={(e) => handleFilterChange('maxPrice', e.target.value)} className="price-input" />
                         </div>
+                        <div className="filter-item">
+                            <select value={filters.property_for} onChange={(e) => handleFilterChange('property_for', e.target.value)} className="filter-select">
+                                <option value="">Property Type</option>
+                                <option value="residential">Residential</option>
+                                <option value="commercial">Commercial</option>
+                            </select>
+                        </div>
                         <button className="clear-filters-btn" onClick={() => setSearchParams({})}>Clear All</button>
                     </div>
                 </div>
@@ -191,7 +198,7 @@ const PropertyListing = () => {
                                         </div>
                                         <div className="card-details-section">
                                             <div className="card-details-header">
-                                                <h4 className="card-title"><Link to={`/property/${property.slug}`}>{property.bedrooms > 0 ? `${property.bedrooms} BHK ` : ''}{property.subcategory?.name || 'Property'} for Sale in {property.locality}, {property.city}</Link></h4>
+                                                <h4 className="card-title"><Link to={`/property/${property.slug}`}>{property.title} for {property.category?.name || 'Sale'} in {property.city}</Link></h4>
                                                 <div className="card-actions-icons"><i className="far fa-heart"></i><i className="fas fa-share-alt"></i></div>
                                             </div>
                                             <div className="card-specs">

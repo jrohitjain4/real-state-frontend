@@ -2,11 +2,14 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { getPropertyImageUrl } from '../api/property'; // Make sure this path is correct
 
-const PropertyCard = ({ property }) => {
+const PropertyCard = ({ property, onDelete }) => {
   const imageUrl = property.images?.[0]?.imageUrl;
 
   return (
     <div className="property-card">
+      <div className="property-status-tag">
+        <span className="status-indicator active">Active</span>
+      </div>
       <Link to={`/property/${property.slug}`} className="property-image-link">
         <div className="property-image">
           {imageUrl ? (
@@ -19,7 +22,6 @@ const PropertyCard = ({ property }) => {
           <div className="no-image-placeholder" style={{ display: imageUrl ? 'none' : 'flex' }}>
             <i className="fas fa-image"></i>
           </div>
-          <div className="property-image-overlay"></div>
           <span className={`property-status ${property.status?.toLowerCase()}`}>
             {property.status || 'Active'}
           </span>
@@ -48,6 +50,18 @@ const PropertyCard = ({ property }) => {
             <i className="fas fa-eye"></i>
             View
           </Link>
+          <button 
+            className="btn btn-danger btn-sm"
+            onClick={(e) => {
+              e.preventDefault();
+              if (window.confirm('Are you sure you want to delete this property? This action cannot be undone.')) {
+                onDelete(property.id);
+              }
+            }}
+          >
+            <i className="fas fa-trash"></i>
+            Delete
+          </button>
         </div>
       </div>
     </div>

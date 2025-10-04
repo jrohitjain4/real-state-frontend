@@ -42,10 +42,12 @@ import './App.css';
 import LandingPage from './pages/LandingPage';
 import CompleteProfile from './pages/CompleteProfile';
 import AddProperty from './pages/AddProperty';
+import EditProperty from './pages/EditProperty';
 import PropertyListing from './pages/PropertyListing';
 import PropertyDetail from './pages/PropertyDetail';
 import MyProperties from './pages/MyProperties';
 import Dashboard from './pages/Dashboard';
+import NotFoundPage from './pages/NotFoundPage';
 import { Navigation } from './landing/components/navigation';
 import { LocationProvider } from './contexts/LocationContext';
 import { AuthProvider } from './contexts/AuthContext';
@@ -72,9 +74,13 @@ const AppContent = () => {
             <Route path="/complete-profile" element={<CompleteProfile />} />
             <Route path="/properties" element={<PropertyListing />} />
           <Route path="/property/:slug" element={<PropertyDetail />} />
+          <Route path="/property-by-id/:id" element={<PropertyDetail />} />
           <Route path="/add-property" element={<AddProperty />} />
+          <Route path="/edit-property/:id" element={<EditProperty />} />
           <Route path="/my-properties" element={<MyProperties />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/404" element={<NotFoundPage />} />
+          <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </div>
       </LocationProvider>

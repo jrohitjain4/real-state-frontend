@@ -8,6 +8,24 @@ export const propertyFormConfig = {
         additionalInfo: ['furnishingStatus', 'possessionStatus', 'ageOfProperty']
     },
     
+    // House specific - no floor fields
+    house: {
+        basicInfo: ['title', 'description'],
+        propertyDetails: ['bedrooms', 'bathrooms', 'balconies'], // No floorNumber, totalFloors for house
+        areaDetails: ['superArea', 'builtUpArea', 'carpetArea'],
+        amenities: ['parking', 'security', 'gym', 'swimmingPool', 'garden', 'powerBackup', 'waterSupply'],
+        additionalInfo: ['furnishingStatus', 'possessionStatus', 'ageOfProperty']
+    },
+    
+    // Villa specific - no floor fields
+    villa: {
+        basicInfo: ['title', 'description'],
+        propertyDetails: ['bedrooms', 'bathrooms', 'balconies'], // No floorNumber, totalFloors for villa
+        areaDetails: ['superArea', 'builtUpArea', 'carpetArea'],
+        amenities: ['parking', 'security', 'gym', 'swimmingPool', 'garden', 'clubHouse', 'playArea', 'powerBackup', 'waterSupply'],
+        additionalInfo: ['furnishingStatus', 'possessionStatus', 'ageOfProperty']
+    },
+    
     land: {
         basicInfo: ['title', 'description'],
         propertyDetails: [], // No bedroom/bathroom for land
@@ -328,6 +346,12 @@ export const fieldDefinitions = {
     },
     fireSafety: {
         label: 'Fire Safety',
+        type: 'checkbox'
+    },
+    
+    // House/Villa specific fields
+    garden: {
+        label: 'Garden/Lawn',
         type: 'checkbox'
     }
 };

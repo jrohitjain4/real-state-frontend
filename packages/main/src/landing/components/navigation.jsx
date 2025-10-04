@@ -149,7 +149,11 @@ export const Navigation = (props) => {
                 ) : (
                   <>
                     <div className="dropdown-column">
-                        <h4>Residential</h4>
+                        <h4>
+                          <a href={`/properties?category=${sellCategory?.id || ''}&property_for=residential`} className="dropdown-heading-link">
+                            Residential
+                          </a>
+                        </h4>
                         {renderSubcategoryLinks(
                           sellSubcategories.filter(sub => 
                             ['residential', 'land', 'pg', 'farmhouse'].includes(sub.propertyType) && 
@@ -160,7 +164,11 @@ export const Navigation = (props) => {
                         )}
                     </div>
                     <div className="dropdown-column">
-                        <h4>Commercial</h4>
+                        <h4>
+                          <a href={`/properties?category=${sellCategory?.id || ''}&property_for=commercial`} className="dropdown-heading-link">
+                            Commercial
+                          </a>
+                        </h4>
                         {renderSubcategoryLinks(
                           sellSubcategories.filter(sub => 
                             ['commercial', 'commercial-land'].includes(sub.propertyType) ||
@@ -210,7 +218,11 @@ export const Navigation = (props) => {
                   <>
                     {/* Column 1 */}
                     <div className="dropdown-column">
-                        <h4>Residential Rent</h4>
+                        <h4>
+                          <a href={`/properties?category=${rentCategory?.id || ''}&property_for=residential`} className="dropdown-heading-link">
+                            Residential Rent
+                          </a>
+                        </h4>
                         {renderSubcategoryLinks(
                           rentSubcategories.filter(sub => 
                             ['residential', 'land', 'pg', 'farmhouse'].includes(sub.propertyType) && 
@@ -222,7 +234,11 @@ export const Navigation = (props) => {
                     </div>
                     {/* Column 2 */}
                     <div className="dropdown-column">
-                        <h4>Commercial Rent</h4>
+                        <h4>
+                          <a href={`/properties?category=${rentCategory?.id || ''}&property_for=commercial`} className="dropdown-heading-link">
+                            Commercial Rent
+                          </a>
+                        </h4>
                         {renderSubcategoryLinks(
                           rentSubcategories.filter(sub => 
                             ['commercial', 'commercial-land'].includes(sub.propertyType) ||
@@ -274,7 +290,11 @@ export const Navigation = (props) => {
                   <>
                     {/* Column 1: Residential Lease */}
                     <div className="dropdown-column">
-                      <h4>Residential Lease</h4>
+                      <h4>
+                        <a href={`/properties?category=${leaseCategory?.id || ''}&property_for=residential`} className="dropdown-heading-link">
+                          Residential Lease
+                        </a>
+                      </h4>
                       {renderSubcategoryLinks(
                         leaseSubcategories.filter(sub => 
                           ['residential', 'land', 'pg', 'farmhouse'].includes(sub.propertyType) && 
@@ -287,7 +307,11 @@ export const Navigation = (props) => {
                     
                     {/* Column 2: Commercial Lease */}
                     <div className="dropdown-column">
-                      <h4>Commercial Lease</h4>
+                      <h4>
+                        <a href={`/properties?category=${leaseCategory?.id || ''}&property_for=commercial`} className="dropdown-heading-link">
+                          Commercial Lease
+                        </a>
+                      </h4>
                       {renderSubcategoryLinks(
                         leaseSubcategories.filter(sub => 
                           ['commercial', 'commercial-land'].includes(sub.propertyType) ||
@@ -332,14 +356,6 @@ export const Navigation = (props) => {
                 List <span className="free-tag">Free</span> Property
               </a>
             </li>
-            
-            {isAuthenticated && user && (
-              <li>
-                <a href="/dashboard" className="nav-link">
-                  Dashboard
-                </a>
-              </li>
-            )}
             
             <li className="auth-section">
               {isAuthenticated && user ? (

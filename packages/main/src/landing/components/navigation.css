@@ -159,6 +159,22 @@
   color: #4d2f6a; 
 }
 
+/* Dropdown heading links */
+.dropdown-heading-link {
+  color: #333 !important;
+  text-decoration: none !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  text-transform: uppercase !important;
+  transition: color 0.2s ease !important;
+  display: block !important;
+}
+
+.dropdown-heading-link:hover {
+  color: #4d2f6a !important;
+  text-decoration: none !important;
+}
+
 /* Image column styles */
 .dropdown-image-column {
 flex: 1.2; 

@@ -90,18 +90,23 @@ const ProfileAvatar = ({ user, onLogout }) => {
               Profile
             </div>
             
-            {/* Dashboard Option - Just text, no functionality */}
-            <div
+            {/* Dashboard - Functional for all authenticated users */}
+            <a
+              href="/dashboard"
+              onClick={() => setIsDropdownOpen(false)}
               style={{
                 display: 'block',
                 padding: '8px 16px',
-                color: '#666',
+                color: '#333',
+                textDecoration: 'none',
                 fontSize: '14px',
-                cursor: 'default'
+                transition: 'background-color 0.2s ease'
               }}
+              onMouseOver={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+              onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
             >
               Dashboard
-            </div>
+            </a>
             
             {/* Admin Dashboard - Only for admin users */}
             {user.role === 'admin' && (
@@ -125,23 +130,6 @@ const ProfileAvatar = ({ user, onLogout }) => {
               >
                 Admin Dashboard
               </a>
-            )}
-            
-            {/* Agent Dashboard - Only for agent users */}
-            {user.role === 'agent' && (
-              <div
-                style={{
-                  display: 'block',
-                  padding: '8px 16px',
-                  color: '#333',
-                  fontSize: '14px',
-                  fontWeight: 'bold',
-                  backgroundColor: '#f0f8ff',
-                  borderLeft: '3px solid #007bff'
-                }}
-              >
-                Agent Dashboard
-              </div>
             )}
             
             {/* Logout - Functional */}

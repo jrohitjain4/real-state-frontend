@@ -366,3 +366,49 @@
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+/* === Refresh Button Styles === */
+.property-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.refresh-btn {
+    background: #6c5ce7;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+}
+
+.refresh-btn:hover {
+    background: #5a4fcf;
+    transform: translateY(-1px);
+}
+
+.refresh-btn i {
+    font-size: 12px;
+}
+
+.refresh-btn:active {
+    transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+    .property-actions {
+        justify-content: center;
+        margin-top: 10px;
+    }
+    
+    .refresh-btn {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+}
