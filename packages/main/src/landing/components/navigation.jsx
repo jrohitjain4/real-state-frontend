@@ -116,7 +116,7 @@ export const Navigation = (props) => {
           </button>
           
           <div className="navbar-brand-section">
-            <a className="navbar-brand page-scroll" href="#page-top">
+            <a className="navbar-brand page-scroll" href="/">
                 Real <span className="navbar-brand-text">Estate</span>
             </a>
             

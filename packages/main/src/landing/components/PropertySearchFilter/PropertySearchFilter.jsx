@@ -37,11 +37,10 @@ const MOCK_LOCATIONS = [
 ];
 
 const PROPERTY_TYPES = [
-  { id: 1, value: 'flat', label: 'Flat', options: ['+1 BHK', '+2 BHK', '+3 BHK', '+4 BHK', '+5 BHK'] },
-  { id: 2, value: 'house', label: 'House/Villa', options: ['+1 BHK', '+2 BHK', '+3 BHK', '+4 BHK', '+5 BHK'] },
-  { id: 3, value: 'plot', label: 'Plot' },
-  { id: 4, value: 'commercial', label: 'Commercial', options: ['Office Space', 'Shop/Showroom', 'Warehouse', 'Coworking'] },
-  { id: 5, value: 'pg', label: 'PG', options: ['Boys', 'Girls', 'Both'] }
+  { id: 1, value: 'flat', label: 'Flat', subcategoryNames: ['Flats'] },
+  { id: 2, value: 'pg', label: 'PG', subcategoryNames: ['PG/Coliving', 'PG'] },
+  { id: 3, value: 'commercial', label: 'Commercial', subcategoryNames: ['Offices', 'Shops', 'Godown'] },
+  { id: 4, value: 'residential', label: 'Residential', subcategoryNames: ['House', 'Villa', 'Farmhouse', 'Flats'] }
 ];
 
 const BUDGET_OPTIONS = {
@@ -84,9 +83,8 @@ const BUDGET_OPTIONS = {
 
 const PropertySearchFilter = ({ onSearch}) => {
   const { currentLocation, setCurrentLocation } = useLocation();
-  const [activeTab, setActiveTab] = useState('buy');
-  const [propertyType, setPropertyType] = useState('flat');
-  const [propertySubType, setPropertySubType] = useState('+1 BHK');
+  const [activeTab, setActiveTab] = useState('buy'); // buy, rent, lease
+  const [propertyType, setPropertyType] = useState(''); // flat, pg, commercial, residential
   const [budgetRange, setBudgetRange] = useState({ min: '', max: '' });
   const [searchQuery, setSearchQuery] = useState('');
   const [showPropertyDropdown, setShowPropertyDropdown] = useState(false);
@@ -136,20 +134,19 @@ const PropertySearchFilter = ({ onSearch}) => {
     // Update parent component's location
     setCurrentLocation(location);
     
-    // Clear search and hide suggestions
-    setSearchQuery('');
+    // Set the city name in search input as well
+    setSearchQuery(location.name);
     setShowLocationSuggestions(false);
     setLocationSuggestions([]);
   };
 
   const handleSearch = () => {
     const searchData = {
-      tab: activeTab,
+      tab: activeTab, // buy, rent, lease
       location: currentLocation,
-      propertyType,
-      propertySubType,
+      propertyType, // flat, pg, commercial, residential
       budgetRange,
-      searchQuery
+      searchQuery // city search
     };
     
     onSearch(searchData);
@@ -157,17 +154,22 @@ const PropertySearchFilter = ({ onSearch}) => {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    // Reset selections when tab changes
-    setPropertyType(tab === 'pg' ? 'pg' : 'flat');
-    setPropertySubType(tab === 'pg' ? 'Boys' : '+1 BHK');
+    // Reset property type when tab changes
+    setPropertyType('');
     setBudgetRange({ min: '', max: '' });
+  };
+
+  const handlePropertyTypeClick = (type) => {
+    // Toggle property type - if same clicked, clear it
+    if (propertyType === type) {
+      setPropertyType('');
+    } else {
+      setPropertyType(type);
+    }
   };
 
   const getCurrentPropertyType = () => {
     const type = PROPERTY_TYPES.find(t => t.value === propertyType);
-    if (type && propertySubType) {
-      return `${type.label} ${propertySubType}`;
-    }
     return type ? type.label : 'Property Type';
   };
 
@@ -198,11 +200,7 @@ const PropertySearchFilter = ({ onSearch}) => {
   const tabs = [
     { id: 'buy', label: 'Buy' },
     { id: 'rent', label: 'Rent' },
-    { id: 'new-projects', label: 'New Projects' },
-    { id: 'pg', label: 'PG' },
-    { id: 'plot', label: 'Plot' },
-    { id: 'commercial', label: 'Commercial' },
-    { id: 'luxury', label: 'Luxury' }
+    { id: 'lease', label: 'Lease' }
   ];
 
   return (
@@ -211,6 +209,7 @@ const PropertySearchFilter = ({ onSearch}) => {
         Start your <span className="hashtag">#PataBadloLifeBadlo</span> Journey
       </h1>
       
+      {/* Main Category Tabs: Buy, Rent, Lease */}
       <div className="search-tabs">
         {tabs.map(tab => (
           <button
@@ -219,6 +218,19 @@ const PropertySearchFilter = ({ onSearch}) => {
             onClick={() => handleTabChange(tab.id)}
           >
             {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Property Type Filters: Flat, PG, Commercial, Residential */}
+      <div className="property-type-filters">
+        {PROPERTY_TYPES.map(type => (
+          <button
+            key={type.id}
+            className={`property-type-button ${propertyType === type.value ? 'active' : ''}`}
+            onClick={() => handlePropertyTypeClick(type.value)}
+          >
+            {type.label}
           </button>
         ))}
       </div>
@@ -252,59 +264,6 @@ const PropertySearchFilter = ({ onSearch}) => {
                 >
                   <i className="fa fa-map-marker"></i>
                   <span>{location.name}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Property Type Dropdown */}
-        <div className="filter-item property-dropdown" ref={propertyDropdownRef}>
-          <button 
-            className="dropdown-button"
-            onClick={() => setShowPropertyDropdown(!showPropertyDropdown)}
-            type='button'
-          >
-            <i className="fa fa-home"></i>
-            <span>{getCurrentPropertyType()}</span>
-            <i className={`fa fa-chevron-${showPropertyDropdown ? 'up' : 'down'}`}></i>
-          </button>
-
-          {showPropertyDropdown && (
-            <div className="dropdown-menu property-menu">
-              {PROPERTY_TYPES.map(type => (
-                <div key={type.id} className="property-type-section">
-                  <div 
-                    className={`property-type-header ${propertyType === type.value ? 'active' : ''}`}
-                    onClick={() => {
-                      setPropertyType(type.value);
-                      if (!type.options) {
-                        setPropertySubType('');
-                        setShowPropertyDropdown(false);
-                      }
-                    }}
-                  >
-                    {type.label}
-                  </div>
-                  {type.options && propertyType === type.value && (
-                    <div className="property-options">
-                      {type.options.map(option => (
-                        <label key={option} className="option-label">
-                          <input
-                            type="radio"
-                            name="propertySubType"
-                            value={option}
-                            checked={propertySubType === option}
-                            onChange={(e) => {
-                              setPropertySubType(e.target.value);
-                              setShowPropertyDropdown(false);
-                            }}
-                          />
-                          <span>{option}</span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
                 </div>
               ))}
             </div>

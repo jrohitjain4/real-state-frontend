@@ -26,19 +26,63 @@ const LandingPage = () => {
     setLandingPageData(JsonData);
   }, []);
   
-  const handleSearch = (searchData) => {
+  const handleSearch = async (searchData) => {
     console.log('🔍 Landing Search Data:', searchData);
     
     // Build query parameters for properties page
     const queryParams = new URLSearchParams();
     
-    // Add category filter based on tab
+    // Map tab to category: buy → sell, rent → rent, lease → lease
+    // Note: "Buy" means properties for sale/sell, so we use Sell category
+    let categorySlug = '';
     if (searchData.tab === 'buy') {
-      queryParams.set('categoryId', '1');
+      categorySlug = 'sell'; // Buy means purchasing properties that are for sale
     } else if (searchData.tab === 'rent') {
-      queryParams.set('categoryId', '2');
-    } else if (searchData.tab === 'pg') {
-      queryParams.set('categoryId', '3');
+      categorySlug = 'rent';
+    } else if (searchData.tab === 'lease') {
+      categorySlug = 'lease';
+    }
+    
+    // Fetch category ID from API based on slug
+    try {
+      const response = await fetch('http://localhost:5000/api/categories');
+      const data = await response.json();
+      if (data.success && data.data) {
+        const category = data.data.find(cat => cat.slug === categorySlug);
+        if (category) {
+          queryParams.set('categoryId', category.id);
+          
+          // Add property_for filter based on property type
+          // Commercial/Residential is determined by property_for field in database
+          if (searchData.propertyType) {
+            if (searchData.propertyType === 'commercial') {
+              queryParams.set('property_for', 'commercial');
+            } else if (searchData.propertyType === 'residential') {
+              queryParams.set('property_for', 'residential');
+            } else if (searchData.propertyType === 'flat') {
+              queryParams.set('property_for', 'residential');
+              // Also add subcategory for flat
+              const flatSubcat = category.subcategories?.find(sub => 
+                sub.name.toLowerCase() === 'flats'
+              );
+              if (flatSubcat) {
+                queryParams.set('subCategoryId', flatSubcat.id);
+              }
+            } else if (searchData.propertyType === 'pg') {
+              queryParams.set('property_for', 'residential');
+              // Also add subcategory for PG
+              const pgSubcat = category.subcategories?.find(sub => 
+                sub.name.toLowerCase().includes('pg')
+              );
+              if (pgSubcat) {
+                queryParams.set('subCategoryId', pgSubcat.id);
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
     }
     
     // Add city filter from search query or selected location
@@ -48,30 +92,13 @@ const LandingPage = () => {
       queryParams.set('city', searchData.location.name);
     }
     
-    // Add property type filter
-    if (searchData.propertyType && searchData.propertyType !== 'all') {
-      if (searchData.propertyType === '1bhk') {
-        queryParams.set('bedrooms', '1');
-      } else if (searchData.propertyType === '2bhk') {
-        queryParams.set('bedrooms', '2');
-      } else if (searchData.propertyType === '3bhk') {
-        queryParams.set('bedrooms', '3');
-      }
-    }
-    
     // Add budget filter
-    if (searchData.budgetRange && searchData.budgetRange !== 'all') {
-      const budgetRanges = {
-        'under-50': { max: 5000000 },
-        '50-100': { min: 5000000, max: 10000000 },
-        '100-200': { min: 10000000, max: 20000000 },
-        'above-200': { min: 20000000 }
-      };
-      
-      const range = budgetRanges[searchData.budgetRange];
-      if (range) {
-        if (range.min) queryParams.set('minPrice', range.min);
-        if (range.max) queryParams.set('maxPrice', range.max);
+    if (searchData.budgetRange && (searchData.budgetRange.min || searchData.budgetRange.max)) {
+      if (searchData.budgetRange.min) {
+        queryParams.set('minPrice', searchData.budgetRange.min);
+      }
+      if (searchData.budgetRange.max) {
+        queryParams.set('maxPrice', searchData.budgetRange.max);
       }
     }
     

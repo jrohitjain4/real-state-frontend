@@ -1,101 +1,79 @@
 // PropertyCarousel.jsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, A11y } from 'swiper/modules';
+import { formatDistanceToNow } from 'date-fns';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
 import './PropertyCarousel.css';
 
-// --- NEW, RELIABLE IMAGE URLS THAT WILL NOT BREAK ---
-const featuredProperties = [
-    {
-        id: 1,
-        slug: 'grand-villa-house',
-        title: 'Grand Villa House',
-        // Reliable Unsplash URL
-        imageUrl: 'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?auto=format&fit=crop&w=870&q=80',
-        price: 1370,
-        tags: [{ text: 'Featured', type: 'featured' }],
-        rating: 4.9,
-        reviews: 25,
-        location: '10, Oak Ridge Villa, USA',
-        bedrooms: 4,
-        bathrooms: 3,
-        area: 520,
-        listedDate: '28 Apr 2025',
-        category: 'Villa',
-        agent: {
-            // Using a reliable placeholder for agent avatar
-            avatarUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
-        }
-    },
-    {
-        id: 2,
-        slug: 'elite-suite-room',
-        title: 'Elite Suite Room',
-        // Reliable Unsplash URL
-        imageUrl: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=870&q=80',
-        price: 2470,
-        tags: [],
-        rating: 4.4,
-        reviews: 79,
-        location: '42, Maple Grove Residences, USA',
-        bedrooms: 2,
-        bathrooms: 1,
-        area: 480,
-        listedDate: '14 Apr 2025',
-        category: 'Suite',
-        agent: {
-            avatarUrl: 'https://randomuser.me/api/portraits/women/17.jpg',
-        }
-    },
-    {
-        id: 3,
-        slug: 'serenity-condo-suite',
-        title: 'Serenity Condo Suite',
-        // Reliable Unsplash URL
-        imageUrl: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=870&q=80',
-        price: 21000,
-        tags: [{ text: 'New', type: 'new' }, { text: 'Featured', type: 'featured' }],
-        rating: 5.0,
-        reviews: 20,
-        location: '17, Grove Towers, New York, USA',
-        bedrooms: 4,
-        bathrooms: 4,
-        area: 350,
-        listedDate: '16 Jan 2023',
-        category: 'Apartment',
-        agent: {
-            avatarUrl: 'https://randomuser.me/api/portraits/men/32.jpg',
-        }
-    },
-    {
-        id: 4,
-        slug: 'modern-downtown-loft',
-        title: 'Modern Downtown Loft',
-        // Reliable Unsplash URL
-        imageUrl: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=870&q=80',
-        price: 3200,
-        tags: [{ text: 'Hot', type: 'new' }],
-        rating: 4.7,
-        reviews: 45,
-        location: '112, Urban Center, LA, USA',
-        bedrooms: 1,
-        bathrooms: 1,
-        area: 400,
-        listedDate: '05 May 2024',
-        category: 'Loft',
-        agent: {
-            avatarUrl: 'https://randomuser.me/api/portraits/men/46.jpg',
-        }
-    },
-];
+const formatPrice = (price) => {
+    if (!price || isNaN(price)) return '₹ Price on request';
+    if (price >= 10000000) return `₹${(price / 10000000).toFixed(2)} Cr`;
+    if (price >= 100000) return `₹${(price / 100000).toFixed(2)} Lac`;
+    return `₹${price.toLocaleString('en-IN')}`;
+};
 
-const formatPrice = (price) => `$${price.toLocaleString('en-US')}`;
+const formatDate = (dateString) => {
+    if (!dateString) return 'Recently';
+    try {
+        return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+    } catch {
+        return 'Recently';
+    }
+};
 
 const PropertyCarousel = () => {
+    const [featuredProperties, setFeaturedProperties] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchFeaturedProperties = async () => {
+            try {
+                setLoading(true);
+                // Fetch latest 5 properties sorted by creation date
+                const response = await fetch('http://localhost:5000/api/properties?limit=5&sortBy=createdAt&sortOrder=DESC');
+                const data = await response.json();
+                
+                if (data.success && data.data.properties) {
+                    setFeaturedProperties(data.data.properties);
+                } else {
+                    setFeaturedProperties([]);
+                }
+            } catch (error) {
+                console.error('Error fetching featured properties:', error);
+                setFeaturedProperties([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchFeaturedProperties();
+    }, []);
+
+    // Don't render anything if no properties
+    if (loading) {
+        return (
+            <section className="featured-properties-section">
+                <div className="container">
+                    <div className="carousel-header">
+                        <div className="header-text">
+                            <h2>Featured Properties for Sales</h2>
+                            <p>Loading latest properties...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        );
+    }
+
+    // Don't render if no properties available
+    if (featuredProperties.length === 0) {
+        return null;
+    }
+
     return (
         <section className="featured-properties-section">
             <div className="container">
@@ -131,54 +109,74 @@ const PropertyCarousel = () => {
                         }}
                         className="property-swiper"
                     >
-                        {featuredProperties.map((property) => (
-                            <SwiperSlide key={property.id}>
-                                <div className="property-card">
-                                    <div className="property-image-container">
-                                        <img src={property.imageUrl} alt={property.title} className="property-image" />
-                                        <div className="image-overlays">
-                                            <div className="top-overlays">
-                                                <div className="tags-container">
-                                                    {property.tags.map((tag, index) => (
-                                                        <span key={index} className={`tag ${tag.type}`}>
-                                                            {tag.type === 'featured' && <i className="fas fa-star"></i>}
-                                                            {tag.type === 'new' && <i className="fas fa-fire"></i>}
-                                                            {tag.text}
+                        {featuredProperties.map((property) => {
+                            const primaryImage = property.images?.find(img => img.isPrimary) || property.images?.[0];
+                            const imageUrl = primaryImage 
+                                ? `http://localhost:5000${primaryImage.imageUrl}` 
+                                : 'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?auto=format&fit=crop&w=870&q=80';
+                            
+                            const ownerAvatar = property.owner?.profilePicture 
+                                ? `http://localhost:5000${property.owner.profilePicture}` 
+                                : 'https://randomuser.me/api/portraits/lego/1.jpg';
+                            
+                            return (
+                                <SwiperSlide key={property.id}>
+                                    <div className="property-card">
+                                        <div className="property-image-container">
+                                            <img src={imageUrl} alt={property.title} className="property-image" />
+                                            <div className="image-overlays">
+                                                <div className="top-overlays">
+                                                    <div className="tags-container">
+                                                        {property.isFeatured && (
+                                                            <span className="tag featured">
+                                                                <i className="fas fa-star"></i>
+                                                                Featured
+                                                            </span>
+                                                        )}
+                                                        <span className="tag new">
+                                                            <i className="fas fa-fire"></i>
+                                                            New
                                                         </span>
-                                                    ))}
+                                                    </div>
+                                                    <button className="wishlist-btn"><i className="far fa-heart"></i></button>
                                                 </div>
-                                                <button className="wishlist-btn"><i className="far fa-heart"></i></button>
+                                                <div className="bottom-overlays">
+                                                    <span className="property-price">{formatPrice(property.price)}</span>
+                                                    <img src={ownerAvatar} alt="Owner" className="agent-avatar" />
+                                                </div>
                                             </div>
-                                            <div className="bottom-overlays">
-                                                <span className="property-price">{formatPrice(property.price)}</span>
-                                                <img src={property.agent.avatarUrl} alt="Agent" className="agent-avatar" />
+                                        </div>
+                                        <div className="property-details">
+                                            <div className="reviews">
+                                                <i className="fas fa-star"></i> 4.5
+                                                <span>(0 Reviews)</span>
+                                            </div>
+                                            <h3 className="property-title">
+                                                <Link to={`/property/${property.slug || property.id}`}>{property.title}</Link>
+                                            </h3>
+                                            <p className="property-location">
+                                                <i className="fas fa-map-marker-alt"></i> {property.locality}, {property.city}
+                                            </p>
+                                            <div className="property-specs">
+                                                {property.bedrooms > 0 && (
+                                                    <span className="spec"><i className="fas fa-bed"></i> {property.bedrooms} Bedroom</span>
+                                                )}
+                                                {property.bathrooms > 0 && (
+                                                    <span className="spec"><i className="fas fa-bath"></i> {property.bathrooms} Bath</span>
+                                                )}
+                                                {property.superArea && (
+                                                    <span className="spec"><i className="fas fa-ruler-combined"></i> {property.superArea} Sq Ft</span>
+                                                )}
+                                            </div>
+                                            <div className="property-footer">
+                                                <span>Listed : {formatDate(property.createdAt)}</span>
+                                                <span>Category : {property.category?.name || 'Property'}</span>
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="property-details">
-                                        <div className="reviews">
-                                            <i className="fas fa-star"></i> {property.rating.toFixed(1)}
-                                            <span>({property.reviews} Reviews)</span>
-                                        </div>
-                                        <h3 className="property-title">
-                                            <Link to={`/property/${property.slug}`}>{property.title}</Link>
-                                        </h3>
-                                        <p className="property-location">
-                                            <i className="fas fa-map-marker-alt"></i> {property.location}
-                                        </p>
-                                        <div className="property-specs">
-                                            <span className="spec"><i className="fas fa-bed"></i> {property.bedrooms} Bedroom</span>
-                                            <span className="spec"><i className="fas fa-bath"></i> {property.bathrooms} Bath</span>
-                                            <span className="spec"><i className="fas fa-ruler-combined"></i> {property.area} Sq Ft</span>
-                                        </div>
-                                        <div className="property-footer">
-                                            <span>Listed on : {property.listedDate}</span>
-                                            <span>Category : {property.category}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </SwiperSlide>
-                        ))}
+                                </SwiperSlide>
+                            );
+                        })}
                     </Swiper>
                 </div>
             </div>

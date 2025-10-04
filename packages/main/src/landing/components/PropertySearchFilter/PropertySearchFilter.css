@@ -93,6 +93,45 @@
   transform: scaleX(1);
 }
 /* END: Use this new block */
+
+/* Property Type Filters */
+.property-type-filters {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.property-type-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  padding: 10px 24px;
+  font-size: 15px;
+  color: #ffffff;
+  cursor: pointer;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+}
+
+.property-type-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.property-type-button.active {
+  background: #ff6b35;
+  border-color: #ff6b35;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+}
+
 .search-filters {
   display: flex;
   gap: 15px;

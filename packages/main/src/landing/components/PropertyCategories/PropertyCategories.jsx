@@ -92,7 +92,7 @@ const propertyCategories = [
     name: 'Retail / Shops',
     icon: <BsShop />,
     categoryId: 4,
-    subcategoryName: 'Shop/Showroom'
+    subcategoryName: 'Shops'
   },
   // --- NEW CATEGORY: WAREHOUSE ---
   {

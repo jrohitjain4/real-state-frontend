@@ -2,7 +2,33 @@
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 export const propertyCategoriesAPI = {
-  // Get property counts for specific category and subcategory
+  // Get property count by subcategory name across ALL categories (Buy, Sell, Rent, Lease)
+  getPropertyCountBySubcategoryName: async (subcategoryName) => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/properties/count-by-subcategory?subcategoryName=${encodeURIComponent(subcategoryName)}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch property count');
+      }
+
+      return data.data?.count || 0;
+    } catch (error) {
+      console.error('Error fetching property count:', error);
+      return 0;
+    }
+  },
+
+  // Get property counts for specific category and subcategory (Old method - kept for compatibility)
   getPropertyCount: async (categoryId, subcategoryName) => {
     try {
       // First get subcategory ID from name
@@ -44,12 +70,12 @@ export const propertyCategoriesAPI = {
     }
   },
 
-  // Get all property counts for multiple categories
+  // Get all property counts for multiple categories - NOW USES CROSS-CATEGORY COUNT
   getAllPropertyCounts: async (categories) => {
     try {
       const countPromises = categories.map(async (category) => {
-        const count = await propertyCategoriesAPI.getPropertyCount(
-          category.categoryId, 
+        // Use the new API that counts across ALL categories
+        const count = await propertyCategoriesAPI.getPropertyCountBySubcategoryName(
           category.subcategoryName
         );
         return { id: category.id, count };

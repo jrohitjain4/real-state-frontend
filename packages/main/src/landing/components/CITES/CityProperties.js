@@ -64,42 +64,34 @@ const CityProperties = () => {
       setLoading(true);
       const counts = {};
       
+      // Fetch real property counts for each city from backend
       for (const city of neighborhoods) {
         try {
-           // First try to get real data from backend
-          const response = await fetch(`http://localhost:5000/api/properties?city=${encodeURIComponent(city.location)}`);
+          const response = await fetch(`http://localhost:5000/api/properties/count-by-city?city=${encodeURIComponent(city.location)}`);
           const data = await response.json();
           
-          console.log(`API Response for ${city.location}:`, data);
+          console.log(`Count API Response for ${city.location}:`, data);
           
           if (data.success && data.data) {
-            // Handle different response structures
-            const properties = data.data.properties || data.data;
-            const realCount = Array.isArray(properties) ? properties.length : 0;
-            console.log(`Real count for ${city.location}:`, realCount);
-            
-            // Use real count if available, otherwise use dummy count
-            const dummyCount = cityPropertyCounts[city.location] || 0;
-            counts[city.location] = realCount > 0 ? realCount : dummyCount;
+            counts[city.location] = data.data.count || 0;
           } else {
-            // Use dummy data if no real data
-            const dummyCount = cityPropertyCounts[city.location] || 0;
-            console.log(`Using dummy count for ${city.location}:`, dummyCount);
-            counts[city.location] = dummyCount;
+            counts[city.location] = 0;
           }
         } catch (error) {
           console.error(`Error fetching count for ${city.location}:`, error);
-          // Use dummy data on error
-          const dummyCount = cityPropertyCounts[city.location] || 0;
-          counts[city.location] = dummyCount;
+          counts[city.location] = 0;
         }
       }
       
       setPropertyCounts(counts);
     } catch (error) {
       console.error('Error fetching property counts:', error);
-      // Set dummy counts if everything fails
-      setPropertyCounts(cityPropertyCounts);
+      // Set zero counts if everything fails
+      const zeroCounts = {};
+      neighborhoods.forEach(n => {
+        zeroCounts[n.location] = 0;
+      });
+      setPropertyCounts(zeroCounts);
     } finally {
       setLoading(false);
     }
