@@ -3,17 +3,10 @@ const { Property, PropertyImage, PropertyFeature, Category, SubCategory, User } 
 const { Op } = require('sequelize');
 const fs = require('fs');
 const path = require('path');
+const Logger = require('../utils/logger');
 
 exports.createProperty = async (req, res) => {
-    // Temporarily disable transaction to debug the issue
-    // let transaction;
     try {
-        console.log('🚀 ===== PROPERTY CREATION STARTED =====');
-        console.log('🔄 Starting property creation...');
-        // transaction = await db.sequelize.transaction({
-        //     isolationLevel: 'READ_COMMITTED',
-        //     timeout: 30000 // 30 seconds timeout
-        // });
         const userId = req.user.id;
         const {
             categoryId,
@@ -70,10 +63,6 @@ exports.createProperty = async (req, res) => {
             ownershipType
 
         } = req.body;
-
-        console.log('🔍 Backend received ownershipType:', ownershipType);
-        console.log('🔍 Backend received features:', features);
-        console.log('🔍 Full request body:', JSON.stringify(req.body, null, 2));
 
         // Clean up numeric fields - convert empty strings to null
         const cleanNumericField = (value) => {
@@ -231,40 +220,23 @@ exports.createProperty = async (req, res) => {
                 });
         }
         
-        console.log('🏠 Creating property with data:', JSON.stringify(propertyData, null, 2));
-        const property = await Property.create(propertyData); // Temporarily remove transaction
-        console.log('✅ Property created successfully:', property.id);
-
+        const property = await Property.create(propertyData);
 
         // Create property features if provided
-        console.log('🔍 Checking features condition...');
-        console.log('🔍 Features object:', features);
-        console.log('🔍 Features type:', typeof features);
-        console.log('🔍 Features keys:', features ? Object.keys(features) : 'null');
-        console.log('🔍 Features length:', features ? Object.keys(features).length : 'null');
-        
         if (features && Object.keys(features).length > 0) {
             try {
-                console.log('🔍 Creating property features for property:', property.id);
-                console.log('🔍 Features to save:', features);
-                
                 // Clean features data to handle ENUM fields correctly
                 const cleanedFeatures = { ...features };
-                
-                console.log('🔍 Original features before cleaning:', cleanedFeatures);
                 
                 // Handle ENUM fields - convert boolean false to correct ENUM values
                 if (cleanedFeatures.parking === false) {
                     cleanedFeatures.parking = 'none';
-                    console.log('🔧 Converted parking false to none');
                 }
                 if (cleanedFeatures.powerBackup === false) {
                     cleanedFeatures.powerBackup = 'none';
-                    console.log('🔧 Converted powerBackup false to none');
                 }
                 if (cleanedFeatures.waterSupply === false) {
                     cleanedFeatures.waterSupply = 'corporation';
-                    console.log('🔧 Converted waterSupply false to corporation');
                 }
                 
                 // Remove boolean false values for other fields to avoid database issues
@@ -276,44 +248,21 @@ exports.createProperty = async (req, res) => {
                           'cafeteria', 'garden', 'servantQuarter', 'guestHouse', 'borewell', 
                           'ac', 'wifi', 'laundry', 'housekeeping', 'cornerProperty', 'mainRoadFacing'].includes(key)) {
                         delete cleanedFeatures[key];
-                        console.log('🗑️ Removed false value for field:', key);
                     }
                 });
                 
-                console.log('🔍 Cleaned features:', cleanedFeatures);
-                
-                const featureRecord = await PropertyFeature.findOrCreate({
+                await PropertyFeature.findOrCreate({
                     where: { propertyId: property.id },
                     defaults: {
                         propertyId: property.id,
                         ...cleanedFeatures
                     }
-                    // Temporarily remove transaction
                 });
-                console.log('✅ Property features created:', featureRecord);
             } catch (featureError) {
-                console.error('❌ Error creating property features:', featureError);
+                Logger.error('Error creating property features:', featureError);
                 // Don't fail the entire property creation if features fail
             }
-        } else {
-            console.log('⚠️ No features provided or features object is empty');
-            console.log('⚠️ Features condition failed - features:', features);
-            console.log('⚠️ Features is null/undefined:', features === null || features === undefined);
-            console.log('⚠️ Features is empty object:', features && Object.keys(features).length === 0);
         }
-
-        // console.log('💾 Committing transaction...');
-        // await transaction.commit();
-        // console.log('✅ Transaction committed successfully');
-        
-        console.log('✅ Property created successfully:', {
-            id: property.id,
-            title: property.title,
-            userId: property.userId,
-            status: property.status
-        });
-        
-        console.log('🎉 ===== PROPERTY CREATION COMPLETED =====');
         res.status(201).json({
             success: true,
             message: 'Property created successfully',
@@ -324,28 +273,7 @@ exports.createProperty = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ Property creation failed:', error.message);
-        // if (transaction) {
-        //     try {
-        //         console.log('🔄 Rolling back transaction...');
-        //         await transaction.rollback();
-        //         console.log('✅ Transaction rolled back successfully');
-        //     } catch (rollbackError) {
-        //         console.error('❌ Error rolling back transaction:', rollbackError);
-        //     }
-        // }
-        
-        console.error('=== PROPERTY CREATION ERROR ===');
-        console.error('Error creating property:', error);
-        console.error('Request body:', JSON.stringify(req.body, null, 2));
-        console.error('Property type:', req.body.propertyType);
-        console.error('User ID:', req.user?.id);
-        console.error('Error details:', {
-            name: error.name,
-            message: error.message,
-            stack: error.stack
-        });
-        console.error('=== END ERROR ===');
+        Logger.error('Property creation failed:', error);
         
         // Ensure we always send a JSON response
         if (!res.headersSent) {
@@ -399,13 +327,6 @@ exports.uploadPropertyImages = async (req, res) => {
         const { propertyId } = req.params;
         const { imageType = 'other', isPrimary = false } = req.body;
 
-        console.log('🖼️ Image upload request:', {
-            propertyId,
-            userId: req.user?.id,
-            imageType,
-            isPrimary
-        });
-
         // Check if property exists and belongs to user
         const property = await Property.findOne({
             where: { 
@@ -413,8 +334,6 @@ exports.uploadPropertyImages = async (req, res) => {
                 userId: req.user.id
             }
         });
-
-        console.log('🔍 Property lookup result:', property ? 'Found' : 'Not found');
 
         if (!property) {
             return res.status(404).json({
@@ -462,7 +381,7 @@ exports.uploadPropertyImages = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error uploading images:', error);
+        Logger.error('Error uploading images:', error);
         res.status(500).json({
             success: false,
             message: 'Error uploading images'
@@ -471,8 +390,6 @@ exports.uploadPropertyImages = async (req, res) => {
 };
 
 exports.getAllProperties = async (req, res) => {
-    console.log('🚨🚨🚨 FIXED getAllProperties called with query:', req.query);
-    console.log('🚨🚨🚨 THIS IS THE UPDATED CODE VERSION 2.0');
     try {
         const {
             categoryId,
@@ -499,33 +416,15 @@ exports.getAllProperties = async (req, res) => {
             status: { [Op.in]: ['active', 'pending'] }
         };
 
-        // Debug logging for Office filtering issue
-        console.log('🔍 API Debug - Query Parameters:', req.query);
-        console.log('🔍 API Debug - Parsed Parameters:', {
-            categoryId: categoryId || category,
-            subCategoryId: subCategoryId || subcategory,
-            property_for
-        });
-
         // Use either categoryId or category parameter
         const finalCategoryId = categoryId || category;
         const finalSubCategoryId = subCategoryId || subcategory;
 
-        console.log('🔍 Final parsed values:', {
-            finalCategoryId,
-            finalSubCategoryId,
-            property_for,
-            'finalCategoryId parsed': finalCategoryId && !isNaN(parseInt(finalCategoryId)) ? parseInt(finalCategoryId) : 'INVALID',
-            'finalSubCategoryId parsed': finalSubCategoryId && !isNaN(parseInt(finalSubCategoryId)) ? parseInt(finalSubCategoryId) : 'INVALID'
-        });
-
         if (finalCategoryId && !isNaN(parseInt(finalCategoryId))) {
             where.categoryId = parseInt(finalCategoryId);
-            console.log('✅ Added categoryId to where:', parseInt(finalCategoryId));
         }
         if (finalSubCategoryId && !isNaN(parseInt(finalSubCategoryId))) {
             where.subCategoryId = parseInt(finalSubCategoryId);
-            console.log('✅ Added subCategoryId to where:', parseInt(finalSubCategoryId));
         }
         if (city) where.city = { [Op.iLike]: `%${city}%` };
         if (minPrice || maxPrice) {
@@ -539,12 +438,6 @@ exports.getAllProperties = async (req, res) => {
         if (furnishingStatus) where.furnishingStatus = furnishingStatus;
         if (possessionStatus) where.possessionStatus = possessionStatus;
 
-        // Debug the final where clause
-        console.log('🔍 Final where clause before query:', JSON.stringify(where, (key, value) => {
-            if (typeof value === 'symbol') return value.toString();
-            return value;
-        }, 2));
-
         if (search) {
             where[Op.or] = [
                 { title: { [Op.iLike]: `%${search}%` } },
@@ -556,11 +449,6 @@ exports.getAllProperties = async (req, res) => {
 
         // Calculate offset
         const offset = (page - 1) * limit;
-
-        // console.log('🔍 Property filtering debug:', {
-        //     queryParams: req.query,
-        //     whereClause: where
-        // });
 
         // Fetch properties
         const { count, rows } = await Property.findAndCountAll({
@@ -600,13 +488,6 @@ exports.getAllProperties = async (req, res) => {
             distinct: true
         });
 
-        // Debug logging for results
-        console.log('🔍 API Debug - Where clause:', where);
-        console.log('🔍 API Debug - Found properties:', rows.length);
-        rows.forEach(property => {
-            console.log(`🔍 - ${property.title} | Category: ${property.category?.name} | Subcategory: ${property.subcategory?.name}`);
-        });
-
         res.json({
             success: true,
             data: {
@@ -621,7 +502,7 @@ exports.getAllProperties = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error fetching properties:', error);
+        Logger.error('Error fetching properties:', error);
         res.status(500).json({
             success: false,
             message: 'Error fetching properties'
@@ -687,15 +568,13 @@ exports.getPropertyBySlug = async (req, res) => {
         // Increment view count
         await property.increment('viewCount');
 
-        console.log('🔍 Property fetched with features:', property.features);
-
         res.json({
             success: true,
             data: property
         });
 
     } catch (error) {
-        console.error('Error fetching property:', error);
+        Logger.error('Error fetching property:', error);
         res.status(500).json({
             success: false,
             message: 'Error fetching property'
@@ -753,7 +632,7 @@ exports.getMyProperties = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error fetching user properties:', error);
+        Logger.error('Error fetching user properties:', error);
         res.status(500).json({
             success: false,
             message: 'Error fetching user properties'
@@ -785,10 +664,105 @@ exports.getPropertyCounts = async (req, res) => {
         });
         
     } catch (error) {
-        console.error('Error fetching property counts:', error);
+        Logger.error('Error fetching property counts:', error);
         res.status(500).json({
             success: false,
             message: 'Error fetching property counts'
+        });
+    }
+};
+
+// Get property count by subcategory name across all categories
+exports.getPropertyCountBySubcategoryName = async (req, res) => {
+    try {
+        const { subcategoryName } = req.query;
+        
+        if (!subcategoryName) {
+            return res.status(400).json({
+                success: false,
+                message: 'Subcategory name is required'
+            });
+        }
+        
+        // Find all subcategories with this name across all categories
+        const subcategories = await SubCategory.findAll({
+            where: {
+                name: subcategoryName
+            },
+            attributes: ['id']
+        });
+        
+        if (subcategories.length === 0) {
+            return res.json({
+                success: true,
+                data: {
+                    count: 0,
+                    subcategoryName: subcategoryName
+                }
+            });
+        }
+        
+        // Get all subcategory IDs
+        const subcategoryIds = subcategories.map(sub => sub.id);
+        
+        // Count properties with these subcategory IDs
+        const count = await Property.count({
+            where: {
+                subCategoryId: { [Op.in]: subcategoryIds },
+                status: { [Op.in]: ['active', 'pending'] }
+            }
+        });
+        
+        res.json({
+            success: true,
+            data: {
+                count: count,
+                subcategoryName: subcategoryName
+            }
+        });
+        
+    } catch (error) {
+        Logger.error('Error fetching property count by subcategory name:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching property count'
+        });
+    }
+};
+
+// Get property count by city (across all categories and subcategories)
+exports.getPropertyCountByCity = async (req, res) => {
+    try {
+        const { city } = req.query;
+        
+        if (!city) {
+            return res.status(400).json({
+                success: false,
+                message: 'City name is required'
+            });
+        }
+        
+        // Count all properties in this city
+        const count = await Property.count({
+            where: {
+                city: { [Op.iLike]: `%${city}%` },
+                status: { [Op.in]: ['active', 'pending'] }
+            }
+        });
+        
+        res.json({
+            success: true,
+            data: {
+                count: count,
+                city: city
+            }
+        });
+        
+    } catch (error) {
+        Logger.error('Error fetching property count by city:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching property count'
         });
     }
 };
@@ -799,26 +773,6 @@ exports.getPropertyById = async (req, res) => {
         const { id } = req.params;
         const userId = req.user.id;
         
-        console.log('=== GET PROPERTY BY ID DEBUG ===');
-        console.log('Property ID:', id);
-        console.log('User ID:', userId);
-        console.log('User:', req.user);
-        
-        // First check if property exists at all
-        const propertyExists = await Property.findOne({
-            where: { id },
-            attributes: ['id', 'title', 'userId']
-        });
-        
-        console.log('Property exists:', propertyExists ? 'YES' : 'NO');
-        if (propertyExists) {
-            console.log('Property owner ID:', propertyExists.userId);
-            console.log('Property title:', propertyExists.title);
-            console.log('Current user ID:', userId);
-            console.log('Ownership match:', propertyExists.userId === userId);
-        }
-        
-        // Temporarily remove userId restriction for debugging
         const property = await Property.findOne({
             where: { id },
             include: [
@@ -845,14 +799,7 @@ exports.getPropertyById = async (req, res) => {
             ]
         });
 
-        console.log('Property found:', property ? 'YES' : 'NO');
-        if (property) {
-            console.log('Property owner ID:', property.userId);
-            console.log('Property title:', property.title);
-        }
-
         if (!property) {
-            console.log('Property not found - returning 404');
             return res.status(404).json({
                 success: false,
                 message: 'Property not found or unauthorized'
@@ -865,7 +812,7 @@ exports.getPropertyById = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error fetching property by ID:', error);
+        Logger.error('Error fetching property by ID:', error);
         res.status(500).json({
             success: false,
             message: 'Error fetching property'
@@ -925,7 +872,7 @@ exports.updateProperty = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error updating property:', error);
+        Logger.error('Error updating property:', error);
         res.status(500).json({
             success: false,
             message: 'Error updating property'
@@ -972,7 +919,7 @@ exports.deleteProperty = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error deleting property:', error);
+        Logger.error('Error deleting property:', error);
         res.status(500).json({
             success: false,
             message: 'Error deleting property'
@@ -1012,8 +959,8 @@ exports.deletePropertyImage = async (req, res) => {
             message: 'Image deleted successfully'
         });
 
-    }      catch (error) {
-        console.error('Error deleting image:', error);
+    } catch (error) {
+        Logger.error('Error deleting image:', error);
         res.status(500).json({
             success: false,
             message: 'Error deleting image'
@@ -1046,7 +993,7 @@ exports.updatePropertyStatus = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error updating property status:', error);
+        Logger.error('Error updating property status:', error);
         res.status(500).json({
             success: false,
             message: 'Error updating property status'
@@ -1099,7 +1046,7 @@ exports.getSimilarProperties = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error fetching similar properties:', error);
+        Logger.error('Error fetching similar properties:', error);
         res.status(500).json({
             success: false,
             message: 'Error fetching similar properties'

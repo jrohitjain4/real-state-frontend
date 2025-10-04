@@ -5,16 +5,20 @@ const propertyController = require('../controllers/propertyController');
 const { auth, admin } = require('../middleware/auth');
 const uploadProperty = require('../middleware/uploadProperty');
 
-// Public routes
-router.get('/properties', propertyController.getAllProperties);
+// Public routes - Specific routes MUST come before parameterized routes
 router.get('/properties/counts', propertyController.getPropertyCounts);
-router.get('/properties/:id/similar', propertyController.getSimilarProperties);
+router.get('/properties/count-by-subcategory', propertyController.getPropertyCountBySubcategoryName);
+router.get('/properties/count-by-city', propertyController.getPropertyCountByCity);
+router.get('/properties', propertyController.getAllProperties);
 
 // Protected routes
 router.post('/properties', auth, propertyController.createProperty);
 router.get('/my-properties', auth, propertyController.getMyProperties);
 
 // Property access routes - order matters!
+// Similar properties route (before :slug to avoid conflict)
+router.get('/properties/:id/similar', propertyController.getSimilarProperties);
+
 // First: Public slug-based access (for property detail pages)
 router.get('/properties/:slug', propertyController.getPropertyBySlug);
 
