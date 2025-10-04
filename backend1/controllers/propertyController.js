@@ -471,10 +471,14 @@ exports.uploadPropertyImages = async (req, res) => {
 };
 
 exports.getAllProperties = async (req, res) => {
+    console.log('🚨🚨🚨 FIXED getAllProperties called with query:', req.query);
+    console.log('🚨🚨🚨 THIS IS THE UPDATED CODE VERSION 2.0');
     try {
         const {
             categoryId,
+            category,
             subCategoryId,
+            subcategory,
             city,
             minPrice,
             maxPrice,
@@ -495,8 +499,34 @@ exports.getAllProperties = async (req, res) => {
             status: { [Op.in]: ['active', 'pending'] }
         };
 
-        if (categoryId && !isNaN(parseInt(categoryId))) where.categoryId = parseInt(categoryId);
-        if (subCategoryId && !isNaN(parseInt(subCategoryId))) where.subCategoryId = parseInt(subCategoryId);
+        // Debug logging for Office filtering issue
+        console.log('🔍 API Debug - Query Parameters:', req.query);
+        console.log('🔍 API Debug - Parsed Parameters:', {
+            categoryId: categoryId || category,
+            subCategoryId: subCategoryId || subcategory,
+            property_for
+        });
+
+        // Use either categoryId or category parameter
+        const finalCategoryId = categoryId || category;
+        const finalSubCategoryId = subCategoryId || subcategory;
+
+        console.log('🔍 Final parsed values:', {
+            finalCategoryId,
+            finalSubCategoryId,
+            property_for,
+            'finalCategoryId parsed': finalCategoryId && !isNaN(parseInt(finalCategoryId)) ? parseInt(finalCategoryId) : 'INVALID',
+            'finalSubCategoryId parsed': finalSubCategoryId && !isNaN(parseInt(finalSubCategoryId)) ? parseInt(finalSubCategoryId) : 'INVALID'
+        });
+
+        if (finalCategoryId && !isNaN(parseInt(finalCategoryId))) {
+            where.categoryId = parseInt(finalCategoryId);
+            console.log('✅ Added categoryId to where:', parseInt(finalCategoryId));
+        }
+        if (finalSubCategoryId && !isNaN(parseInt(finalSubCategoryId))) {
+            where.subCategoryId = parseInt(finalSubCategoryId);
+            console.log('✅ Added subCategoryId to where:', parseInt(finalSubCategoryId));
+        }
         if (city) where.city = { [Op.iLike]: `%${city}%` };
         if (minPrice || maxPrice) {
             where.price = {};
@@ -508,6 +538,12 @@ exports.getAllProperties = async (req, res) => {
         if (property_for) where.property_for = property_for;
         if (furnishingStatus) where.furnishingStatus = furnishingStatus;
         if (possessionStatus) where.possessionStatus = possessionStatus;
+
+        // Debug the final where clause
+        console.log('🔍 Final where clause before query:', JSON.stringify(where, (key, value) => {
+            if (typeof value === 'symbol') return value.toString();
+            return value;
+        }, 2));
 
         if (search) {
             where[Op.or] = [
@@ -564,6 +600,13 @@ exports.getAllProperties = async (req, res) => {
             distinct: true
         });
 
+        // Debug logging for results
+        console.log('🔍 API Debug - Where clause:', where);
+        console.log('🔍 API Debug - Found properties:', rows.length);
+        rows.forEach(property => {
+            console.log(`🔍 - ${property.title} | Category: ${property.category?.name} | Subcategory: ${property.subcategory?.name}`);
+        });
+
         res.json({
             success: true,
             data: {
@@ -590,8 +633,20 @@ exports.getPropertyBySlug = async (req, res) => {
     try {
         const { slug } = req.params;
 
+        // Check if the slug is actually a UUID (for property detail pages)
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
+        
+        let whereClause;
+        if (isUUID) {
+            // If it's a UUID, search by ID
+            whereClause = { id: slug, status: 'active' };
+        } else {
+            // If it's a slug, search by slug
+            whereClause = { slug, status: 'active' };
+        }
+
         const property = await Property.findOne({
-            where: { slug, status: 'active' },
+            where: whereClause,
             attributes: { exclude: [] }, // Include all attributes including ownershipType
             include: [
                 {
@@ -738,6 +793,86 @@ exports.getPropertyCounts = async (req, res) => {
     }
 };
 
+// Get property by ID (for editing)
+exports.getPropertyById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+        
+        console.log('=== GET PROPERTY BY ID DEBUG ===');
+        console.log('Property ID:', id);
+        console.log('User ID:', userId);
+        console.log('User:', req.user);
+        
+        // First check if property exists at all
+        const propertyExists = await Property.findOne({
+            where: { id },
+            attributes: ['id', 'title', 'userId']
+        });
+        
+        console.log('Property exists:', propertyExists ? 'YES' : 'NO');
+        if (propertyExists) {
+            console.log('Property owner ID:', propertyExists.userId);
+            console.log('Property title:', propertyExists.title);
+            console.log('Current user ID:', userId);
+            console.log('Ownership match:', propertyExists.userId === userId);
+        }
+        
+        // Temporarily remove userId restriction for debugging
+        const property = await Property.findOne({
+            where: { id },
+            include: [
+                {
+                    model: PropertyImage,
+                    as: 'images',
+                    attributes: ['id', 'imageUrl', 'isPrimary']
+                },
+                {
+                    model: PropertyFeature,
+                    as: 'features',
+                    attributes: ['id', 'parking', 'parkingCount', 'powerBackup', 'waterSupply', 'lift', 'security', 'cctv', 'gym', 'swimmingPool', 'clubHouse', 'playArea', 'gasConnection', 'vastu', 'petFriendly', 'intercom', 'visitorParking', 'boundaryWall', 'waterConnection', 'electricityConnection', 'centralAC', 'cafeteria', 'garden', 'servantQuarter', 'guestHouse', 'borewell', 'food', 'ac', 'wifi', 'laundry', 'housekeeping', 'cornerProperty', 'mainRoadFacing']
+                },
+                {
+                    model: Category,
+                    as: 'category',
+                    attributes: ['id', 'name']
+                },
+                {
+                    model: SubCategory,
+                    as: 'subcategory',
+                    attributes: ['id', 'name']
+                }
+            ]
+        });
+
+        console.log('Property found:', property ? 'YES' : 'NO');
+        if (property) {
+            console.log('Property owner ID:', property.userId);
+            console.log('Property title:', property.title);
+        }
+
+        if (!property) {
+            console.log('Property not found - returning 404');
+            return res.status(404).json({
+                success: false,
+                message: 'Property not found or unauthorized'
+            });
+        }
+
+        res.json({
+            success: true,
+            data: property
+        });
+
+    } catch (error) {
+        console.error('Error fetching property by ID:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching property'
+        });
+    }
+};
+
 exports.updateProperty = async (req, res) => {
         // const transaction = await db.sequelize.transaction();
     
@@ -763,21 +898,21 @@ exports.updateProperty = async (req, res) => {
         delete updatedData.userId;
         delete updatedData.slug; // Don't update slug
         
-        await property.update(updatedData, { transaction });
+        await property.update(updatedData);
 
         // Update features if provided
-        if (req.body.features) {
+        if (req.body && req.body.features) {
             const existingFeatures = await PropertyFeature.findOne({
                 where: { propertyId: id }
             });
 
             if (existingFeatures) {
-                await existingFeatures.update(req.body.features, { transaction });
+                await existingFeatures.update(req.body.features);
             } else {
                 await PropertyFeature.create({
                     propertyId: id,
                     ...req.body.features
-                }, { transaction });
+                });
             }
         }
 
@@ -790,7 +925,6 @@ exports.updateProperty = async (req, res) => {
         });
 
     } catch (error) {
-        await transaction.rollback();
         console.error('Error updating property:', error);
         res.status(500).json({
             success: false,
@@ -830,9 +964,7 @@ exports.deleteProperty = async (req, res) => {
         }
 
         // Delete property (cascade will delete related records)
-        await property.destroy({ transaction });
-
-        // await transaction.commit();
+        await property.destroy();
 
         res.json({
             success: true,
@@ -840,7 +972,6 @@ exports.deleteProperty = async (req, res) => {
         });
 
     } catch (error) {
-        await transaction.rollback();
         console.error('Error deleting property:', error);
         res.status(500).json({
             success: false,

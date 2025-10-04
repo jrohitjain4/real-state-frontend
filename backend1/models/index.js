@@ -34,6 +34,7 @@ db.SubCategory = require('./subcategory.model.js')(sequelize, Sequelize);
 db.Property = require('./property.model.js')(sequelize, Sequelize);
 db.PropertyImage = require('./propertyImage.model.js')(sequelize, Sequelize);
 db.PropertyFeature = require('./propertyFeature.model.js')(sequelize, Sequelize);
+db.Message = require('./message.model.js')(sequelize, Sequelize);
 
 // Define associations
 // Category - SubCategory
@@ -60,5 +61,13 @@ db.PropertyImage.belongsTo(db.Property, { foreignKey: 'propertyId' });
 // Property - PropertyFeature (One to One)
 db.Property.hasOne(db.PropertyFeature, { foreignKey: 'propertyId', as: 'features' });
 db.PropertyFeature.belongsTo(db.Property, { foreignKey: 'propertyId' });
+
+// Message associations
+db.User.hasMany(db.Message, { foreignKey: 'senderId', as: 'sentMessages' });
+db.User.hasMany(db.Message, { foreignKey: 'receiverId', as: 'receivedMessages' });
+db.Message.belongsTo(db.User, { foreignKey: 'senderId', as: 'sender' });
+db.Message.belongsTo(db.User, { foreignKey: 'receiverId', as: 'receiver' });
+db.Property.hasMany(db.Message, { foreignKey: 'propertyId', as: 'messages' });
+db.Message.belongsTo(db.Property, { foreignKey: 'propertyId', as: 'property' });
 
 module.exports = db;

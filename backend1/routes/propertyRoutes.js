@@ -8,12 +8,18 @@ const uploadProperty = require('../middleware/uploadProperty');
 // Public routes
 router.get('/properties', propertyController.getAllProperties);
 router.get('/properties/counts', propertyController.getPropertyCounts);
-router.get('/properties/:slug', propertyController.getPropertyBySlug);
 router.get('/properties/:id/similar', propertyController.getSimilarProperties);
 
 // Protected routes
 router.post('/properties', auth, propertyController.createProperty);
 router.get('/my-properties', auth, propertyController.getMyProperties);
+
+// Property access routes - order matters!
+// First: Public slug-based access (for property detail pages)
+router.get('/properties/:slug', propertyController.getPropertyBySlug);
+
+// Second: Protected ID-based access (for editing)
+router.get('/properties/:id', auth, propertyController.getPropertyById);
 router.put('/properties/:id', auth, propertyController.updateProperty);
 router.delete('/properties/:id', auth, propertyController.deleteProperty);
 
