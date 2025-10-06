@@ -221,3 +221,112 @@ exports.updateKYCDetails = async (req,res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
+
+// Get user profile (full details)
+exports.getUserProfile = async (req, res) => {
+    try {
+        const user = await User.findByPk(req.user.id, {
+            attributes: { exclude: ['password', 'verificationToken', 'resetPasswordToken', 'resetPasswordExpires'] }
+        });
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        res.json({
+            success: true,
+            user
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+// Update user profile
+exports.updateUserProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { firstName, lastName, email, phoneNumber, address, city, state, pincode } = req.body;
+        
+        const user = await User.findByPk(userId);
+        
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Check if email is being changed and if it's already taken
+        if (email && email !== user.email) {
+            const existingUser = await User.findOne({ where: { email } });
+            if (existingUser) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: 'Email already in use' 
+                });
+            }
+            user.email = email;
+        }
+
+        // Update basic fields
+        if (firstName) user.firstName = firstName;
+        if (lastName) user.lastName = lastName;
+        if (phoneNumber) user.phoneNumber = phoneNumber;
+        if (address) user.address = address;
+        if (city) user.city = city;
+        if (state) user.state = state;
+        if (pincode) user.pincode = pincode;
+
+        // Check and update profile completion
+        user.checkProfileCompletion();
+        
+        await user.save();
+
+        // Update localStorage user data
+        const updatedUser = user.toJSON();
+        delete updatedUser.password;
+        
+        res.json({
+            success: true,
+            message: 'Profile updated successfully',
+            user: updatedUser
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+// Upload profile photo
+exports.uploadProfilePhoto = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        
+        if (!req.file) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'No file uploaded' 
+            });
+        }
+
+        const user = await User.findByPk(userId);
+        
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Save the profile photo path
+        const photoPath = `/uploads/profiles/${req.file.filename}`;
+        user.profilePhoto = photoPath;
+        
+        await user.save();
+
+        res.json({
+            success: true,
+            message: 'Profile photo uploaded successfully',
+            photoPath
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};

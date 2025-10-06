@@ -25,6 +25,24 @@ const Dashboard = () => {
     unreadMessages: 0
   });
   
+  // Profile states
+  const [profileData, setProfileData] = useState(null);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
+  const [profilePhotoFile, setProfilePhotoFile] = useState(null);
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState(null);
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phoneNumber: '',
+    address: '',
+    city: '',
+    state: '',
+    pincode: ''
+  });
+  
   const selectedConversationRef = useRef(null);
   const messagesEndRef = useRef(null);
 
@@ -345,11 +363,345 @@ const Dashboard = () => {
     </div>
   );
 
+  // Profile related functions
+  const fetchProfileData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/data/profile', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        setProfileData(data.user);
+        setFormData({
+          firstName: data.user.firstName || '',
+          lastName: data.user.lastName || '',
+          email: data.user.email || '',
+          phoneNumber: data.user.phoneNumber || '',
+          address: data.user.address || '',
+          city: data.user.city || '',
+          state: data.user.state || '',
+          pincode: data.user.pincode || ''
+        });
+        if (data.user.profilePhoto) {
+          setProfilePhotoPreview(`http://localhost:5000${data.user.profilePhoto}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        showMessage('error', 'File size must be less than 5MB');
+        return;
+      }
+      if (!file.type.startsWith('image/')) {
+        showMessage('error', 'Only image files are allowed');
+        return;
+      }
+      setProfilePhotoFile(file);
+      setProfilePhotoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const uploadProfilePhoto = async () => {
+    if (!profilePhotoFile) return true;
+    try {
+      const token = localStorage.getItem('token');
+      const photoFormData = new FormData();
+      photoFormData.append('profilePhoto', profilePhotoFile);
+      const response = await fetch('http://localhost:5000/api/data/profile/photo', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: photoFormData
+      });
+      const data = await response.json();
+      if (data.success) {
+        showMessage('success', 'Profile photo updated successfully');
+        setProfilePhotoFile(null);
+        const currentUser = getCurrentUser();
+        if (currentUser) {
+          currentUser.profilePhoto = data.photoPath;
+          localStorage.setItem('user', JSON.stringify(currentUser));
+        }
+        return true;
+      } else {
+        showMessage('error', data.message || 'Failed to upload photo');
+        return false;
+      }
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+      showMessage('error', 'Failed to upload profile photo');
+      return false;
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    setSaving(true);
+    setMessage({ type: '', text: '' });
+    try {
+      if (profilePhotoFile) {
+        const photoUploaded = await uploadProfilePhoto();
+        if (!photoUploaded) {
+          setSaving(false);
+          return;
+        }
+      }
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/data/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+      const data = await response.json();
+      if (data.success) {
+        showMessage('success', 'Profile updated successfully!');
+        setProfileData(data.user);
+        setEditing(false);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        setUser(data.user);
+        await fetchProfileData();
+      } else {
+        showMessage('error', data.message || 'Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      showMessage('error', 'Failed to update profile');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditing(false);
+    setProfilePhotoFile(null);
+    if (profileData) {
+      setFormData({
+        firstName: profileData.firstName || '',
+        lastName: profileData.lastName || '',
+        email: profileData.email || '',
+        phoneNumber: profileData.phoneNumber || '',
+        address: profileData.address || '',
+        city: profileData.city || '',
+        state: profileData.state || '',
+        pincode: profileData.pincode || ''
+      });
+      if (profileData.profilePhoto) {
+        setProfilePhotoPreview(`http://localhost:5000${profileData.profilePhoto}`);
+      } else {
+        setProfilePhotoPreview(null);
+      }
+    }
+    setMessage({ type: '', text: '' });
+  };
+
+  const showMessage = (type, text) => {
+    setMessage({ type, text });
+    setTimeout(() => setMessage({ type: '', text: '' }), 5000);
+  };
+
+  const getRoleDisplay = (role) => {
+    const roleMap = { 'user': 'User', 'agent': 'Agent', 'admin': 'Admin', 'owner': 'Owner' };
+    return roleMap[role] || role;
+  };
+
+  const getRoleBadgeClass = (role) => {
+    const roleClasses = { 'user': 'role-badge-user', 'agent': 'role-badge-agent', 'admin': 'role-badge-admin', 'owner': 'role-badge-owner' };
+    return roleClasses[role] || 'role-badge-user';
+  };
+
+  const renderMyProfile = () => (
+    <div className="dashboard-section profile-section-dashboard">
+      <div className="section-header">
+        <h2>MY PROFILE</h2>
+        {!editing ? (
+          <button className="btn btn-primary" onClick={() => setEditing(true)}>
+            <i className="fas fa-edit"></i> Edit Profile
+          </button>
+        ) : (
+          <div className="action-buttons">
+            <button className="btn btn-success" onClick={handleSaveProfile} disabled={saving}>
+              {saving ? <><i className="fas fa-spinner fa-spin"></i> Saving...</> : <><i className="fas fa-save"></i> Save</>}
+            </button>
+            <button className="btn btn-secondary" onClick={handleCancelEdit} disabled={saving}>
+              <i className="fas fa-times"></i> Cancel
+            </button>
+          </div>
+        )}
+      </div>
+
+      {message.text && (
+        <div className={`profile-alert profile-alert-${message.type}`}>
+          <i className={`fas fa-${message.type === 'success' ? 'check-circle' : 'exclamation-circle'}`}></i>
+          {message.text}
+        </div>
+      )}
+
+      <div className="profile-content-dashboard">
+        <div className="profile-photo-section">
+          <div className="photo-container">
+            {profilePhotoPreview ? (
+              <img src={profilePhotoPreview} alt="Profile" className="profile-photo" />
+            ) : (
+              <div className="profile-photo-placeholder">
+                <i className="fas fa-user"></i>
+              </div>
+            )}
+            {editing && (
+              <div className="photo-upload-overlay">
+                <label htmlFor="photo-upload" className="photo-upload-label">
+                  <i className="fas fa-camera"></i>
+                  <span>Change Photo</span>
+                </label>
+                <input type="file" id="photo-upload" accept="image/*" onChange={handlePhotoChange} style={{ display: 'none' }} />
+              </div>
+            )}
+          </div>
+          {profilePhotoFile && <p className="photo-hint">New photo selected. Click Save to upload.</p>}
+        </div>
+
+        <div className="profile-info-grid">
+          <div className="profile-info-section">
+            <h3><i className="fas fa-user-circle"></i> Basic Information</h3>
+            <div className="form-grid-profile">
+              <div className="form-group">
+                <label>First Name</label>
+                {editing ? (
+                  <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} className="form-control" required />
+                ) : (
+                  <p className="form-value">{profileData?.firstName || 'Not provided'}</p>
+                )}
+              </div>
+              <div className="form-group">
+                <label>Last Name</label>
+                {editing ? (
+                  <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} className="form-control" required />
+                ) : (
+                  <p className="form-value">{profileData?.lastName || 'Not provided'}</p>
+                )}
+              </div>
+              <div className="form-group">
+                <label>Email</label>
+                {editing ? (
+                  <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="form-control" required />
+                ) : (
+                  <p className="form-value">{profileData?.email || 'Not provided'}</p>
+                )}
+              </div>
+              <div className="form-group">
+                <label>Phone Number</label>
+                {editing ? (
+                  <input type="tel" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} className="form-control" />
+                ) : (
+                  <p className="form-value">{profileData?.phoneNumber || 'Not provided'}</p>
+                )}
+              </div>
+              <div className="form-group full-width">
+                <label>Role</label>
+                <div className="role-display">
+                  <span className={`role-badge ${getRoleBadgeClass(profileData?.role)}`}>
+                    {getRoleDisplay(profileData?.role)}
+                  </span>
+                  <span className="role-note">
+                    <i className="fas fa-info-circle"></i> Role cannot be changed
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="profile-info-section">
+            <h3><i className="fas fa-map-marker-alt"></i> Address Information</h3>
+            <div className="form-grid-profile">
+              <div className="form-group full-width">
+                <label>Address</label>
+                {editing ? (
+                  <textarea name="address" value={formData.address} onChange={handleInputChange} className="form-control" rows="3" />
+                ) : (
+                  <p className="form-value">{profileData?.address || 'Not provided'}</p>
+                )}
+              </div>
+              <div className="form-group">
+                <label>City</label>
+                {editing ? (
+                  <input type="text" name="city" value={formData.city} onChange={handleInputChange} className="form-control" />
+                ) : (
+                  <p className="form-value">{profileData?.city || 'Not provided'}</p>
+                )}
+              </div>
+              <div className="form-group">
+                <label>State</label>
+                {editing ? (
+                  <input type="text" name="state" value={formData.state} onChange={handleInputChange} className="form-control" />
+                ) : (
+                  <p className="form-value">{profileData?.state || 'Not provided'}</p>
+                )}
+              </div>
+              <div className="form-group">
+                <label>Pincode</label>
+                {editing ? (
+                  <input type="text" name="pincode" value={formData.pincode} onChange={handleInputChange} className="form-control" maxLength="6" />
+                ) : (
+                  <p className="form-value">{profileData?.pincode || 'Not provided'}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="profile-info-section">
+            <h3><i className="fas fa-id-card"></i> KYC Information</h3>
+            <div className="form-grid-profile">
+              <div className="form-group">
+                <label>Aadhar Number</label>
+                <p className="form-value">
+                  {profileData?.aadharNumber ? `XXXX XXXX ${profileData.aadharNumber.slice(-4)}` : 'Not provided'}
+                </p>
+              </div>
+              <div className="form-group">
+                <label>PAN Number</label>
+                <p className="form-value">
+                  {profileData?.panNumber ? `${profileData.panNumber.slice(0, 2)}XXX${profileData.panNumber.slice(-4)}` : 'Not provided'}
+                </p>
+              </div>
+              <div className="form-group">
+                <label>KYC Status</label>
+                <span className={`status-badge ${profileData?.kycVerified ? 'verified' : 'pending'}`}>
+                  <i className={`fas fa-${profileData?.kycVerified ? 'check-circle' : 'clock'}`}></i>
+                  {profileData?.kycVerified ? 'KYC Verified' : 'KYC Pending'}
+                </span>
+              </div>
+              <div className="form-group">
+                <label>Profile Status</label>
+                <span className={`status-badge ${profileData?.profileCompleted ? 'verified' : 'pending'}`}>
+                  <i className={`fas fa-${profileData?.profileCompleted ? 'check-circle' : 'clock'}`}></i>
+                  {profileData?.profileCompleted ? 'Complete' : 'Incomplete'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderContent = () => {
     switch (activeTab) {
       case 'my-properties': return renderMyProperties();
       case 'my-messages': return renderMyMessages();
       case 'my-documents': return renderMyDocuments();
+      case 'my-profile': return renderMyProfile();
       default: return renderMyProperties();
     }
   };
@@ -367,6 +719,7 @@ const Dashboard = () => {
           <button className={`sidebar-item ${activeTab === 'my-properties' ? 'active' : ''}`} onClick={() => {setActiveTab('my-properties'); setSidebarOpen(false);}}><i className="fas fa-building"></i> <span>My Properties</span></button>
           <button className={`sidebar-item ${activeTab === 'my-messages' ? 'active' : ''}`} onClick={() => {setActiveTab('my-messages'); setSidebarOpen(false);}}><i className="fas fa-envelope"></i> <span>Messages</span></button>
           <button className={`sidebar-item ${activeTab === 'my-documents' ? 'active' : ''}`} onClick={() => {setActiveTab('my-documents'); setSidebarOpen(false);}}><i className="fas fa-file-alt"></i> <span>Documents</span></button>
+          <button className={`sidebar-item ${activeTab === 'my-profile' ? 'active' : ''}`} onClick={() => {setActiveTab('my-profile'); setSidebarOpen(false); fetchProfileData();}}><i className="fas fa-user-circle"></i> <span>My Profile</span></button>
         </nav>
         <div className="sidebar-footer"><button className="logout-btn btn btn-outline" onClick={handleLogout}><i className="fas fa-sign-out-alt"></i> <span>Logout</span></button></div>
       </div>

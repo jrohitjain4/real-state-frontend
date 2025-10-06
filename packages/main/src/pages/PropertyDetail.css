@@ -354,6 +354,44 @@
     .similar-properties-scroll { padding-left: 20px; padding-right: 20px; }
 }
 
+/* View More Button */
+.view-more-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+    padding-bottom: 20px;
+}
+
+.view-more-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: #ff6b35;
+    color: white;
+    padding: 14px 32px;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+}
+
+.view-more-btn:hover {
+    background: #e55a2b;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+}
+
+.view-more-btn i {
+    font-size: 14px;
+    transition: transform 0.3s ease;
+}
+
+.view-more-btn:hover i {
+    transform: translateX(5px);
+}
+
 @media (max-width: 480px) {
     .overview-grid-new {
         grid-template-columns: repeat(2, 1fr);
@@ -364,6 +402,11 @@
     }
     .amenities-grid-new {
         grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .view-more-btn {
+        padding: 12px 24px;
+        font-size: 14px;
     }
 }
 

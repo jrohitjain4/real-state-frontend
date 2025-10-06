@@ -47,6 +47,7 @@ import PropertyListing from './pages/PropertyListing';
 import PropertyDetail from './pages/PropertyDetail';
 import MyProperties from './pages/MyProperties';
 import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
 import NotFoundPage from './pages/NotFoundPage';
 import { Navigation } from './landing/components/navigation';
 import { LocationProvider } from './contexts/LocationContext';
@@ -79,6 +80,7 @@ const AppContent = () => {
           <Route path="/edit-property/:id" element={<EditProperty />} />
           <Route path="/my-properties" element={<MyProperties />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/404" element={<NotFoundPage />} />
           <Route path="*" element={<NotFoundPage />} />
           </Routes>

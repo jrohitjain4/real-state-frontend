@@ -881,10 +881,10 @@ const PropertyDetail = () => {
                             <div className="property-actions">
                                 <button 
                                     onClick={refreshPropertyData}
-                                    className="refresh-btn"
+                                    className=""
                                     title="Refresh property data"
                                 >
-                                    <i className="fas fa-sync-alt"></i> Refresh
+                                   
                                 </button>
                             </div>
                             <div className="location-bar">
@@ -1018,6 +1018,15 @@ const PropertyDetail = () => {
                             </div>
                             <button className="carousel-nav prev" onClick={() => { document.getElementById('similarPropertiesScroll').scrollBy({ left: -300, behavior: 'smooth' }); }}><i className="fas fa-chevron-left"></i></button>
                             <button className="carousel-nav next" onClick={() => { document.getElementById('similarPropertiesScroll').scrollBy({ left: 300, behavior: 'smooth' }); }}><i className="fas fa-chevron-right"></i></button>
+                        </div>
+                        <div className="view-more-container">
+                            <Link 
+                                to={`/properties?city=${encodeURIComponent(property.city)}&categoryId=${property.categoryId}`} 
+                                className="view-more-btn"
+                            >
+                                View More Properties
+                                <i className="fas fa-arrow-right"></i>
+                            </Link>
                         </div>
                     </div>
                 </div>
